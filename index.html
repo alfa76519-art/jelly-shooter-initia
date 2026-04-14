@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <title>🍬 Jelly Shooter Game</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Baloo+2:wght@700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --pk: #ff6eb4;
+      --pk2: #ffb3d9;
+      --pk3: #ffe0f0;
+      --bl: #5bb8ff;
+      --bl2: #b3d9ff;
+      --bl3: #e0f2ff;
+      --yl: #ffd93d;
+      --yl2: #ffe97a;
+      --yl3: #fff5c2;
+      --mn: #4ecdc4;
+      --mn2: #9eeae6;
+      --mn3: #d4f5f3;
+      --pu: #c084fc;
+      --pu2: #ddb6fd;
+      --pu3: #f3e8ff;
+      --or: #ff9f43;
+      --or2: #ffbd7a;
+      --rd: #ff6b6b;
+      --tx: #3d2a4e;
+      --tx2: #7a5c8a;
+      --tx3: #b89ec4;
+      --glass: rgba(255, 255, 255, 0.82);
+      --sh: 0 8px 28px rgba(200, 80, 180, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: linear-gradient(135deg, #fff0f8 0%, #eef5ff 50%, #fffff0 100%);
+      font-family: 'Nunito', sans-serif;
+      color: var(--tx);
+      overflow: hidden;
+      user-select: none;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image: radial-gradient(var(--pk2) 1.5px, transparent 1.5px), radial-gradient(var(--bl2) 1px, transparent 1px);
+      background-size: 38px 38px, 22px 22px;
+      background-position: 0 0, 12px 12px;
+      opacity: .35;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* ── BLOBS ── */
+    .blb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+      animation: blbF 9s ease-in-out infinite;
+    }
+
+    @keyframes blbF {
+
+      0%,
+      100% {
+        transform: translateY(0)scale(1);
+      }
+
+      50% {
+        transform: translateY(-22px)scale(1.06);
+      }
+    }
+
+    /* ── HUD ── */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 16px;
+      background: var(--glass);
+      backdrop-filter: blur(18px);
+      border-bottom: 2px solid rgba(255, 110, 180, .3);
+      box-shadow: 0 2px 18px rgba(255, 110, 180, .12);
+    }
+
+    .logo {
+      font-family: 'Baloo 2', cursive;
+      font-size: 20px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--pk), var(--pu));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hscores {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .hscore-box {
+      text-align: center;
+    }
+
+    .hs-lbl {
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--tx3);
+    }
+
+    .hs-val {
+      font-family: 'Baloo 2', cursive;
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--pk);
+    }
+
+    .hbtn {
+      border: none;
+      border-radius: 999px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    #walletBtn {
+      background: linear-gradient(135deg, var(--pk), var(--pu));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(192, 132, 252, .35);
+    }
+
+    #walletBtn.wcon {
+      background: linear-gradient(135deg, var(--mn), var(--bl));
+      box-shadow: 0 4px 14px rgba(78, 205, 196, .35);
+    }
+
+    #skinBtn {
+      background: rgba(255, 110, 180, .15);
+      color: var(--pk);
+      border: 2px solid rgba(255, 110, 180, .35);
+    }
+
+    /* ── SIDE PILLS ── */
+    .pill {
+      position: fixed;
+      z-index: 50;
+      background: var(--glass);
+      backdrop-filter: blur(14px);
+      border-radius: 18px;
+      border: 2px solid rgba(255, 110, 180, .28);
+      box-shadow: var(--sh);
+      padding: 7px 12px;
+      pointer-events: none;
+    }
+
+    #pill-lives {
+      top: 62px;
+      left: 10px;
+    }
+
+    #pill-lives .hl {
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--tx3);
+    }
+
+    .ld {
+      display: flex;
+      gap: 2px;
+      flex-wrap: wrap;
+      max-width: 110px;
+      margin-top: 1px;
+    }
+
+    /* ── MISSION HUD ── */
+    #mh {
+      position: fixed;
+      top: 62px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      background: var(--glass);
+      backdrop-filter: blur(14px);
+      border: 2px solid rgba(255, 110, 180, .25);
+      border-radius: 16px;
+      padding: 6px 13px;
+      min-width: 205px;
+      max-width: 262px;
+      box-shadow: var(--sh);
+      pointer-events: none;
+    }
+
+    /* ── BALL HUD ── */
+    #ballhud {
+      position: fixed;
+      top: 145px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 189, 122, .35);
+      border-radius: 20px;
+      padding: 3px 12px;
+      pointer-events: none;
+      font-size: 12px;
+      color: var(--or);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    #ap {
+      position: fixed;
+      top: 182px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      font-family: 'Nunito', sans-serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      display: none;
+      pointer-events: none;
+      font-weight: 800;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 2px solid;
+    }
+
+    /* ── BOTTOM HUD ── */
+    #bh {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 8px 12px 16px;
+      pointer-events: none;
+    }
+
+    .hm {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 110, 180, .25);
+      border-radius: 16px;
+      padding: 7px 12px;
+      text-align: center;
+      box-shadow: var(--sh);
+    }
+
+    .hl {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--tx3);
+    }
+
+    .arc {
+      width: 64px;
+      height: 36px;
+      border: 2px solid rgba(255, 110, 180, .35);
+      border-bottom: none;
+      border-radius: 64px 64px 0 0;
+      position: relative;
+      margin: 3px auto 0;
+    }
+
+    .ndl {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      height: 30px;
+      background: linear-gradient(to top, var(--pk), var(--pu));
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+      transition: transform .1s;
+      border-radius: 2px;
+      box-shadow: 0 0 6px rgba(255, 110, 180, .5);
+    }
+
+    .pt {
+      width: 90px;
+      height: 10px;
+      background: rgba(255, 110, 180, .12);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 4px;
+      border: 1.5px solid rgba(255, 110, 180, .28);
+    }
+
+    .pf {
+      height: 100%;
+      width: 50%;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--mn), var(--yl), var(--pk));
+      transition: width .05s;
+    }
+
+    /* ── LAUNCH AREA ── */
+    #la {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .sl {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--tx3);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    #as {
+      -webkit-appearance: none;
+      width: 185px;
+      height: 7px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--pk3), var(--bl3));
+      outline: none;
+      pointer-events: all;
+      cursor: pointer;
+      border: 2px solid rgba(255, 110, 180, .3);
+    }
+
+    #as::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--pk), var(--pu));
+      box-shadow: 0 3px 10px rgba(255, 110, 180, .5);
+      border: 3px solid #fff;
+    }
+
+    #fb {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--pk2), var(--pk), #e0168c);
+      border: 4px solid rgba(255, 255, 255, .7);
+      cursor: pointer;
+      font-family: 'Baloo 2', cursive;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(255, 110, 180, .55);
+      transition: transform .1s;
+      pointer-events: all;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+    }
+
+    #fb:active {
+      transform: scale(.93);
+    }
+
+    #fb.ch {
+      animation: jFire .3s infinite alternate;
+    }
+
+    @keyframes jFire {
+      from {
+        box-shadow: 0 8px 22px rgba(255, 110, 180, .5), 0 0 0 4px rgba(255, 110, 180, .18);
+      }
+
+      to {
+        box-shadow: 0 14px 42px rgba(255, 110, 180, .9), 0 0 0 14px rgba(255, 110, 180, .12);
+      }
+    }
+
+    /* ── BATTLE MODE ── */
+    #battleZone {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 160px;
+      z-index: 20;
+      touch-action: none;
+      display: none;
+    }
+
+    #nudgeBtn {
+      position: fixed;
+      bottom: 24px;
+      right: 14px;
+      z-index: 999;
+      pointer-events: all;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--mn2), var(--mn));
+      border: 3px solid rgba(255, 255, 255, .65);
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(78, 205, 196, .5);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      touch-action: none;
+    }
+
+    #nudgeBtn.ready {
+      box-shadow: 0 8px 28px rgba(78, 205, 196, .85);
+    }
+
+    #nudgeBtn.cooldown {
+      opacity: .52;
+      cursor: not-allowed;
+    }
+
+    #nudgeCoolBar {
+      width: 44px;
+      height: 4px;
+      background: rgba(255, 255, 255, .25);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    #nudgeCoolFill {
+      height: 100%;
+      width: 100%;
+      background: #fff;
+      border-radius: 2px;
+      transition: width .1s linear;
+    }
+
+    #paddleHint {
+      position: fixed;
+      bottom: 130px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--tx3);
+      font-weight: 700;
+      pointer-events: none;
+      z-index: 10;
+      display: none;
+    }
+
+    #st {
+      position: fixed;
+      bottom: 118px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--tx3);
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* ── OVERLAYS ── */
+    .ov {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 235, 248, .9);
+      backdrop-filter: blur(14px);
+    }
+
+    .ov.h {
+      display: none;
+    }
+
+    .oc {
+      background: rgba(255, 255, 255, .94);
+      border: 2px solid rgba(255, 110, 180, .45);
+      border-radius: 28px;
+      padding: 18px;
+      text-align: center;
+      max-width: 380px;
+      width: 92%;
+      box-shadow: 0 16px 60px rgba(255, 110, 180, .22);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .ot {
+      font-family: 'Baloo 2', cursive;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--pk);
+      margin-bottom: 6px;
+    }
+
+    .os {
+      font-size: 13px;
+      color: var(--tx2);
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+
+    .osr {
+      display: flex;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1.5px solid rgba(255, 110, 180, .15);
+      font-size: 15px;
+    }
+
+    .osr .l {
+      color: var(--tx3);
+      font-weight: 700;
+    }
+
+    .osr .v {
+      color: var(--pk);
+      font-weight: 800;
+    }
+
+    .bp {
+      margin-top: 16px;
+      background: linear-gradient(135deg, var(--pk), var(--pu));
+      color: #fff;
+      border: none;
+      padding: 13px 34px;
+      border-radius: 999px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(255, 110, 180, .42);
+      transition: transform .2s;
+    }
+
+    .bp:hover {
+      transform: scale(1.04);
+    }
+
+    .db {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      justify-content: center;
+    }
+
+    .d {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 110, 180, .35);
+      background: transparent;
+      color: var(--pk);
+      font-family: 'Nunito', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .d.a {
+      background: rgba(255, 110, 180, .15);
+      border-color: var(--pk);
+    }
+
+    /* ── FLOATS / BADGES ── */
+    #lb {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 60;
+      font-family: 'Baloo 2', cursive;
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--pk);
+      text-shadow: 0 4px 20px rgba(255, 110, 180, .5);
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    #cd {
+      position: fixed;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 60;
+      font-family: 'Baloo 2', cursive;
+      font-size: 26px;
+      font-weight: 900;
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      transition: opacity .3s;
+    }
+
+    #pn {
+      position: fixed;
+      top: 22%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
+      font-size: 15px;
+      font-weight: 800;
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      padding: 9px 22px;
+      border-radius: 20px;
+      border: 2px solid;
+    }
+
+    #fl {
+      position: fixed;
+      inset: 0;
+      z-index: 250;
+      pointer-events: none;
+      opacity: 0;
+      background: linear-gradient(135deg, rgba(255, 180, 220, .5), rgba(180, 220, 255, .5));
+      transition: opacity .05s;
+    }
+
+    /* ── TOASTS ── */
+    #toastBox {
+      position: fixed;
+      bottom: 185px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .ti {
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(12px);
+      border-radius: 999px;
+      padding: 9px 18px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 2px solid;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
+      animation: tIn .3s ease;
+    }
+
+    @keyframes tIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── MISSION POPUP ── */
+    .mpop {
+      background: rgba(255, 255, 255, .96);
+      border: 2px solid rgba(255, 110, 180, .5);
+      border-radius: 22px;
+      padding: 24px;
+      max-width: 300px;
+      width: 88%;
+      text-align: center;
+      box-shadow: 0 14px 44px rgba(255, 110, 180, .2);
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 110, 180, .35);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- BLOBS -->
+  <div class="blb"
+    style="width:360px;height:360px;background:radial-gradient(circle,rgba(255,179,217,.5),transparent 70%);top:-80px;left:-60px;animation-delay:0s;">
+  </div>
+  <div class="blb"
+    style="width:300px;height:300px;background:radial-gradient(circle,rgba(179,217,255,.45),transparent 70%);top:40%;right:-60px;animation-delay:-3.5s;">
+  </div>
+  <div class="blb"
+    style="width:260px;height:260px;background:radial-gradient(circle,rgba(255,245,179,.45),transparent 70%);bottom:-50px;left:30%;animation-delay:-6s;">
+  </div>
+  <div class="blb"
+    style="width:220px;height:220px;background:radial-gradient(circle,rgba(192,132,252,.35),transparent 70%);top:20%;left:48%;animation-delay:-2s;">
+  </div>
+
+  <canvas id="cv"></canvas>
+  <div id="fl"></div>
+  <div id="toastBox"></div>
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="logo">🍬 Jelly Shooter</div>
+    <div class="hscores">
+      <div class="hscore-box">
+        <div class="hs-lbl">SCORE</div>
+        <div class="hs-val" id="sv">0</div>
+      </div>
+      <div class="hscore-box">
+        <div class="hs-lbl">TIME</div>
+        <div class="hs-val" id="tv" style="color:var(--bl)">60</div>
+      </div>
+      <div class="hscore-box">
+        <div class="hs-lbl">COINS</div>
+        <div class="hs-val" id="cv2" style="color:var(--yl)">0</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center;">
+      <button class="hbtn" id="skinBtn" onclick="openShop()">🍭 Skin</button>
+      <button class="hbtn" id="walletBtn" onclick="connectKeplr()">🔌 Connect</button>
+    </div>
+  </div>
+
+  <!-- NYAWA + LEVEL PILL -->
+  <div class="pill" id="pill-lives">
+    <div class="hl">LIVES</div>
+    <div class="ld" id="ld"></div>
+    <div class="hl" style="margin-top:3px">LVL <span id="lv"
+        style="color:var(--pk);font-size:12px;font-weight:900">1</span></div>
+  </div>
+
+  <div id="mh"></div>
+  <div id="ballhud">🍬 <span style="font-size:9px;color:var(--tx3);margin-left:2px;font-weight:700">JELLY ACTIVE</span>
+  </div>
+  <div id="ap"></div>
+  <div id="lb"></div>
+  <div id="cd"></div>
+  <div id="pn"></div>
+  <div id="st">📱 Shake to Fire!</div>
+
+  <!-- BATTLE MODE -->
+  <div id="battleZone"></div>
+  <div id="nudgeBtn" onclick="applyNudge()">
+    <span style="font-size:18px">🍭</span>
+    <span>NUDGE</span>
+    <div id="nudgeCoolBar">
+      <div id="nudgeCoolFill"></div>
+    </div>
+  </div>
+  <div id="paddleHint">◀ Drag screen = Paddle ▶</div>
+
+  <!-- BOTTOM HUD -->
+  <div id="bh">
+    <div class="hm">
+      <div class="hl">ANGLE</div>
+      <div style="font-size:20px;color:var(--pk);font-weight:900;font-family:'Baloo 2',cursive" id="av">0°</div>
+      <div class="arc">
+        <div class="ndl" id="ndl"></div>
+      </div>
+    </div>
+    <div class="hm">
+      <div class="hl">POWER</div>
+      <div style="font-size:20px;color:var(--or);font-weight:900;font-family:'Baloo 2',cursive" id="pv">50%</div>
+      <div class="pt">
+        <div class="pf" id="pf"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAUNCH -->
+  <div id="la">
+    <div class="sl">◀ Left &nbsp; Angle &nbsp; Right ▶</div>
+    <input type="range" id="as" min="-70" max="70" value="0">
+    <div id="fb">SHOOTER!🍬</div>
+  </div>
+
+  <!-- MISSION BRIEF -->
+  <div class="ov h" id="mbOv" style="background:rgba(255,235,248,.78)">
+    <div class="mpop">
+      <div
+        style="font-size:10px;font-weight:800;letter-spacing:2px;color:var(--pk);text-transform:uppercase;margin-bottom:4px">
+        📋 New Mission</div>
+      <div id="mbt"
+        style="font-family:'Baloo 2',cursive;font-size:16px;font-weight:800;color:var(--pu);margin-bottom:10px"></div>
+      <div id="mbs" style="font-size:13px;color:var(--tx2);line-height:1.7;margin-bottom:11px;font-weight:700"></div>
+      <div id="mbr" style="font-size:12px;color:var(--mn);font-weight:800"></div>
+      <div style="font-size:10px;color:var(--tx3);margin-top:8px;font-weight:700">Tap to close ✕</div>
+    </div>
+  </div>
+
+  <!-- MISSION COMPLETE -->
+  <div class="ov h" id="mcOv" style="background:rgba(235,255,252,.78)">
+    <div
+      style="background:rgba(255,255,255,.96);border:2px solid rgba(78,205,196,.55);border-radius:22px;padding:24px;max-width:285px;width:88%;text-align:center;box-shadow:0 14px 44px rgba(78,205,196,.22);">
+      <div style="font-size:32px;margin-bottom:7px">🏆</div>
+      <div id="mct"
+        style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:800;color:var(--mn);margin-bottom:8px"></div>
+      <div id="mcr" style="font-size:13px;color:var(--yl);font-weight:800;margin-bottom:4px"></div>
+      <div id="mcc" style="font-size:12px;color:var(--tx3);font-weight:700"></div>
+    </div>
+  </div>
+
+  <!-- SHOP -->
+  <div class="ov h" id="shOv">
+    <div
+      style="background:rgba(255,255,255,.96);border:2px solid rgba(255,110,180,.45);border-radius:26px;padding:24px;max-width:390px;width:92%;max-height:88vh;overflow-y:auto;box-shadow:0 16px 60px rgba(255,110,180,.2);">
+      <div
+        style="font-family:'Baloo 2',cursive;font-size:20px;font-weight:900;color:var(--pk);text-align:center;margin-bottom:6px">
+        🍬 Jelly Skin Shop</div>
+      <div style="text-align:center;font-size:13px;color:var(--tx2);margin-bottom:13px;font-weight:700">Coins: 🪙 <span
+          id="shc" style="color:var(--yl);font-family:'Baloo 2',cursive;font-weight:900"></span></div>
+      <div id="shg" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px"></div>
+      <div style="text-align:center;font-size:10px;color:var(--tx3);margin-bottom:12px;font-weight:700">Coins = score÷10
+        each game. Unlock skins via missions!</div>
+      <button onclick="closeShop()"
+        style="width:100%;padding:11px;background:rgba(255,110,180,.12);border:2px solid rgba(255,110,180,.4);color:var(--pk);border-radius:999px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">✕
+        Close</button>
+    </div>
+  </div>
+
+  <!-- START -->
+  <div class="ov" id="ss">
+    <div class="oc">
+      <div style="font-size:48px;margin-bottom:4px">🍬</div>
+      <div class="ot">Jelly Shooter!</div>
+      <div class="os">Shoot candy, defeat the Giant Donut Boss!</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:13px;line-height:1.9;font-weight:700">
+        Drag the <span style="color:var(--pk)">slider</span> to aim · Hold <span style="color:var(--rd)">FIRE</span> for
+        more power<br>
+        🍩 <b style="color:var(--or)">Donut Boss</b> = 3 hits! &nbsp; 🍬 <b style="color:var(--pk)">+Jelly</b> = extra
+        ball slot!
+      </div>
+      <!-- Reward panel -->
+      <div
+        style="padding:12px 14px;background:rgba(255,110,180,.1);border-radius:18px;border:1.5px solid rgba(255,110,180,.35);margin-bottom:4px;">
+        <div
+          style="font-size:9px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">
+          🎁 Sultan Rewards</div>
+        <div
+          style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:10px;background:rgba(255,110,180,.08);margin-bottom:5px">
+          <span>🎟️</span><span style="font-size:11px;font-weight:700;color:var(--tx)">Score 300+ → 1 Raffle
+            Entry</span>
+        </div>
+        <div
+          style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:10px;background:rgba(255,110,180,.08);margin-bottom:5px">
+          <span>🎫</span><span style="font-size:11px;font-weight:700;color:var(--tx)">Score 600+ → Free Ticket</span>
+        </div>
+        <div
+          style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:10px;background:rgba(255,110,180,.08)">
+          <span>🏆</span><span style="font-size:11px;font-weight:700;color:var(--tx)">Score 900+ → NFT Bonus</span>
+        </div>
+      </div>
+      <div class="db">
+        <button class="d a" onclick="setDiff('easy',this)">😊 Easy</button>
+        <button class="d" onclick="setDiff('normal',this)">😤 Normal</button>
+        <button class="d" onclick="setDiff('hard',this)">💀 Hard</button>
+      </div>
+      <button class="bp" onclick="startGame()">🚀 Start Game!</button>
+    </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="ov h" id="go">
+    <div class="oc">
+      <div style="font-size:42px;margin-bottom:4px">🍬</div>
+      <div class="ot" id="got">Game Over</div>
+      <div class="os" id="gos"></div>
+
+      <div class="osr"><span class="l">Final Score</span><span class="v" id="gosc">0</span></div>
+      <div class="osr"><span class="l">Accuracy</span><span class="v" id="goac">0%</span></div>
+      <div class="osr"><span class="l">Coins Earned</span><span class="v" style="color:var(--yl)" id="gocn">0</span>
+      </div>
+
+      <div id="rewardContainer" style="width:100%">
+        <button class="bp" id="redeemBtn" onclick="redeemReward()"
+          style="background:linear-gradient(135deg, #4ecdc4, #5bb8ff); display:none; width:100%; margin: 15px 0; border:none; box-shadow: 0 4px 15px rgba(78,205,196,0.3); font-weight: bold;">
+          💎 CLAIM NFT BONUS (Tx L2)
+        </button>
+      </div>
+
+      <button class="bp" onclick="restartGame()">↺ Play Again! 🍬</button>
+    </div>
+  </div>
+
+  <script>
+    // ╔══════════════════════════════════════════╗
+    // ║          KEPLR WALLET                   ║
+    // ╚══════════════════════════════════════════╝
+    const CHAIN_ID = 'initiation-2';
+    let walletAddress = localStorage.getItem('jlySesAddr') || null;
+    function shortAddr(a) { return a ? a.slice(0, 6) + '...' + a.slice(-4) : ''; }
+    function updateWalletUI() {
+      const btn = document.getElementById('walletBtn'); if (!btn) return;
+      if (walletAddress) { btn.textContent = '✅ ' + shortAddr(walletAddress); btn.classList.add('wcon'); }
+      else { btn.innerHTML = '🔌 Connect'; btn.classList.remove('wcon'); }
+    }
+    async function connectKeplr() {
+      if (walletAddress) { walletAddress = null; localStorage.removeItem('jlySesAddr'); updateWalletUI(); showToast('Wallet disconnected 👋', '#ff6b6b'); return; }
+      if (!window.keplr) { showToast('Keplr not found! Opening store...', '#ff9f43'); setTimeout(() => window.open('https://chromewebstore.google.com/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap', '_blank'), 700); return; }
+      try {
+        showToast('Connecting to Initia...', '#5bb8ff');
+        await window.keplr.enable(CHAIN_ID);
+        const signer = window.keplr.getOfflineSigner(CHAIN_ID);
+        const accounts = await signer.getAccounts();
+        if (accounts && accounts[0]) { walletAddress = accounts[0].address; localStorage.setItem('jlySesAddr', walletAddress); updateWalletUI(); showToast('✅ ' + shortAddr(walletAddress), '#4ecdc4'); }
+      } catch (e) { showToast('Failed: ' + (e.message || 'User rejected'), '#ff6b6b'); }
+    }
+    window.addEventListener('load', () => { if (walletAddress) updateWalletUI(); });
+
+    function showToast(msg, color = '#ff6eb4') {
+      const box = document.getElementById('toastBox');
+      const t = document.createElement('div'); t.className = 'ti';
+      t.style.color = color; t.style.borderColor = color + '55'; t.textContent = msg;
+      box.appendChild(t);
+      setTimeout(() => t.remove(), 3200);
+    } // <--- KOMENTAR ALIEN SUDAH GUGEL HAPUS!
+
+    async function redeemReward() {
+      if (!walletAddress) { showToast('Please connect your wallet first! 🔌', '#ff6b6b'); return; }
+
+      try {
+        showToast('🚀 Sending signal to Ubuntu...', '#5bb8ff');
+
+        // INI SUDAH GUGEL KASIH NAMA VARIABELNYA LAGI!
+        const NGROK_URL = "https://resolved-platypus-procurer.ngrok-free.dev";
+
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 8000);
+
+        const response = await fetch(`${NGROK_URL}/initia/tx/v1beta1/txs`, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            address: "init12w09z08cldmxmpkg5tqr7p9ckw4txklgpdjd9p",
+            score: G.score,
+            accuracy: Math.round((G.normalHits / (G.shots || 1)) * 100),
+            tx_bytes: "BASE64_HASIL_SIGN_SULTAN",
+            mode: "BROADCAST_MODE_SYNC"
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(id);
+        if (!response.ok) throw new Error('Backend Dimension Rejected! (404/500)');
+
+        showToast('💎 Backend Sync Success! Check Keplr...', '#4ecdc4');
+        await window.keplr.enable(CHAIN_ID);
+        showToast('✅ Raffle Entry Redeemed!', '#4ecdc4');
+        document.getElementById('redeemBtn').style.display = 'none';
+
+      } catch (e) {
+        console.error("DEBUG SULTAN:", e);
+        showToast('❌ Cek Terminal Ubuntu! Error: ' + e.message, '#ff6b6b');
+      }
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║              AUDIO                      ║
+    // ╚══════════════════════════════════════════╝
+    const AC = new (window.AudioContext || window.webkitAudioContext)();
+    function tone(f, t, d, v = .2, dc = .88) { try { const o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination); o.type = t; o.frequency.setValueAtTime(f, AC.currentTime); o.frequency.exponentialRampToValueAtTime(f * dc, AC.currentTime + d); g.gain.setValueAtTime(v, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + d); o.start(); o.stop(AC.currentTime + d); } catch (e) { } }
+    function noise(d, v = .09) { try { const b = AC.createBuffer(1, AC.sampleRate * d, AC.sampleRate), da = b.getChannelData(0); for (let i = 0; i < da.length; i++)da[i] = Math.random() * 2 - 1; const s = AC.createBufferSource(), g = AC.createGain(); s.buffer = b; s.connect(g); g.connect(AC.destination); g.gain.setValueAtTime(v, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + d); s.start(); s.stop(AC.currentTime + d); } catch (e) { } }
+    const SFX = {
+      shoot() { tone(520, 'sine', .07, .16, .65); tone(750, 'sine', .04, .1, .4); },
+      hit() { tone(660, 'sine', .1, .2, .5); tone(440, 'sine', .06, .12, .4); },
+      bossHit() { tone(260, 'sawtooth', .12, .24, .5); noise(.08, .12); },
+      bossDie() { [330, 440, 550, 660, 880].forEach((f, i) => setTimeout(() => tone(f, 'sine', .17, .18), i * 55)); noise(.38, .2); },
+      powerup() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 'sine', .12, .17), i * 68)); },
+      combo(n) { tone(380 + n * 48, 'sine', .08, .14); if (n >= 5) setTimeout(() => tone((380 + n * 48) * 1.5, 'sine', .08, .14), 68); },
+      levelup() { [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => tone(f, 'sine', .15, .2), i * 48)); },
+      tick() { tone(880, 'sine', .1, .26, 1); },
+      bounce() { tone(580, 'sine', .05, .08, .85); },
+    };
+
+    // ╔══════════════════════════════════════════╗
+    // ║              CANVAS                     ║
+    // ╚══════════════════════════════════════════╝
+    const canvas = document.getElementById('cv');
+    const ctx = canvas.getContext('2d');
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize(); window.addEventListener('resize', resize);
+
+    // ╔══════════════════════════════════════════╗
+    // ║           JELLY CANDY SKINS             ║
+    // ╚══════════════════════════════════════════╝
+    const SKINS = [
+      { id: 'strawberry', name: 'STRAWBERRY', icon: '🍓', cost: 0, unlocked: true, body: '#ff6eb4', glow: '#ffb3d9', trail: '#ffe0f0' },
+      { id: 'blueberry', name: 'BLUEBERRY', icon: '🫐', cost: 5000, unlocked: false, body: '#5bb8ff', glow: '#b3d9ff', trail: '#e0f2ff' },
+      { id: 'mint', name: 'MINT', icon: '🌿', cost: 15000, unlocked: false, body: '#4ecdc4', glow: '#9eeae6', trail: '#d4f5f3' },
+      { id: 'lemon', name: 'LEMON', icon: '🍋', cost: 30000, unlocked: false, body: '#ffd93d', glow: '#ffe97a', trail: '#fff5c2' },
+      { id: 'grape', name: 'GRAPE', icon: '🍇', cost: 75000, unlocked: false, body: '#c084fc', glow: '#ddb6fd', trail: '#f3e8ff' },
+      { id: 'rainbow', name: 'RAINBOW', icon: '🌈', cost: 200000, unlocked: false, body: '#ff6eb4', glow: '#ffd93d', trail: '#5bb8ff' },
+    ];
+    let skinIdx = 0;
+    function SK() { return SKINS[skinIdx]; }
+
+    // ╔══════════════════════════════════════════╗
+    // ║              MISSIONS                   ║
+    // ╚══════════════════════════════════════════╝
+    const MISSIONS = [
+      { id: 1, title: 'WARM-UP', desc: 'Destroy 5 candies', target: 'hits', goal: 5, reward: 300, story: 'Welcome to Jelly World! Destroy 5 candy targets to begin your adventure!', complete: false },
+      { id: 2, title: 'CANDY HUNTER', desc: 'Hit 15 targets', target: 'hits', goal: 15, reward: 600, story: 'More candy incoming! Destroy 15 targets before time runs out.', complete: false },
+      { id: 3, title: 'DONUT BUSTER', desc: 'Defeat 1 Donut Boss (3 hits!)', target: 'boss', goal: 1, reward: 900, story: 'A giant Donut Boss appears! It has 3 layers of icing — hit it 3 times! Unlocks BLUEBERRY skin 🫐', complete: false },
+      { id: 4, title: 'SWEET SNIPER', desc: 'Hit 15 targets with 60%+ accuracy', target: 'acc60', goal: 15, reward: 700, story: 'Candy targets are moving fast! Maintain at least 60% accuracy. Don\'t waste your shots!', complete: false },
+      { id: 5, title: 'COMBO KING', desc: 'Reach a 5x combo', target: 'combo', goal: 5, reward: 800, story: 'Your jelly keeps bouncing! Hit targets consecutively to build a combo! Unlocks MINT skin 🌿', complete: false },
+      { id: 6, title: 'DONUT SLAYER', desc: 'Defeat 3 Donut Bosses', target: 'boss', goal: 3, reward: 1800, story: '3 Donut Bosses are closing in! Use power-ups wisely. Unlocks LEMON skin 🍋', complete: false },
+      { id: 7, title: 'CANDY CRUSH', desc: 'Score 50,000 in one session', target: 'score', goal: 50000, reward: 2500, story: 'Prove yourself by scoring 50,000 in a single session. Jelly World is counting on you!', complete: false },
+      { id: 8, title: 'JELLY MASTER', desc: 'Reach Level 10', target: 'level', goal: 10, reward: 4000, story: 'The ultimate challenge: reach Level 10. Only a true Jelly Master can do this!', complete: false },
+    ];
+    let activeMission = MISSIONS[0];
+    let mProg = 0;
+    let totalCoins = 0;
+    let procMissionCount = 0;
+
+    // ╔══════════════════════════════════════════╗
+    // ║            GAME STATE                   ║
+    // ╚══════════════════════════════════════════╝
+    let G = {
+      running: false, score: 0, lives: 3, level: 1, time: 60,
+      angle: 0, power: 50, charging: false, chargeStart: 0,
+      shots: 0, normalHits: 0, bossHits: 0, combo: 0, maxCombo: 0, bossKills: 0,
+      diff: 'easy', slowmo: false, multishot: false, puTimer: 0, activePU: null,
+      maxBalls: 1, _spawnTimer: null
+    };
+    const DCFG = {
+      easy: { targets: 2, speed: .38, tBonus: 5, radius: 34, lives: 5, time: 90, bossChance: .12 },
+      normal: { targets: 3, speed: .65, tBonus: 3, radius: 27, lives: 3, time: 60, bossChance: .20 },
+      hard: { targets: 4, speed: 1.0, tBonus: 2, radius: 21, lives: 2, time: 45, bossChance: .28 },
+    };
+    function CFG() { return DCFG[G.diff]; }
+
+    // STATE MACHINE
+    let gameState = 'AIMING';
+
+    // PADDLE
+    const PADDLE = { x: 0, y: 0, w: 120, h: 16, vx: 0, targetX: 0, visible: false };
+    let nudgeCooldown = 0;
+    const NUDGE_CD = 2000;
+
+    // ENTITIES
+    let robots = [], targets = [], particles = [], powerups = [], floats = [], ballItems = [];
+
+    // CANDY TARGET TYPES
+    const TTYPES = [
+      { color: '#ff6eb4', glow: '#ffb3d9', pts: 100, emoji: '🍭' },
+      { color: '#ffd93d', glow: '#ffe97a', pts: 200, emoji: '🍋' },
+      { color: '#5bb8ff', glow: '#b3d9ff', pts: 150, emoji: '🫐' },
+      { color: '#c084fc', glow: '#ddb6fd', pts: 300, emoji: '🍇' },
+    ];
+    // POWER-UP TYPES
+    const PTYPES = [
+      { id: 'multishot', icon: '🍭', label: 'MULTI-JELLY!', color: '#ffd93d', dur: 8 },
+      { id: 'slowmo', icon: '🌀', label: 'SLOW-MO!', color: '#5bb8ff', dur: 6 },
+      { id: 'time', icon: '⏰', label: '+15 DETIK!', color: '#4ecdc4', dur: 0 },
+      { id: 'shield', icon: '🛡', label: '+1 LIFE!', color: '#c084fc', dur: 0 },
+    ];
+
+    // BG CANDY FLOATERS
+    let bgCandies = [];
+    for (let i = 0; i < 16; i++)bgCandies.push({
+      x: Math.random(), y: Math.random(),
+      sz: 3 + Math.random() * 7,
+      color: ['rgba(255,179,217,.3)', 'rgba(179,217,255,.28)', 'rgba(255,245,179,.28)', 'rgba(179,235,230,.28)', 'rgba(210,183,253,.28)'][Math.floor(Math.random() * 5)],
+      spd: .00008 + Math.random() * .00013, rot: Math.random() * Math.PI * 2, rs: (Math.random() - .5) * .02
+    });
+
+    // ╔══════════════════════════════════════════╗
+    // ║          STATE TRANSITIONS              ║
+    // ╚══════════════════════════════════════════╝
+    function getDir(ang) { const r = ang * Math.PI / 180; return { dx: -Math.sin(r), dy: -Math.cos(r) }; }
+
+    function enterAiming() {
+      gameState = 'AIMING';
+      document.getElementById('la').style.display = 'flex';
+      document.getElementById('bh').style.display = 'flex';
+      document.getElementById('st').style.display = 'block';
+      document.getElementById('battleZone').style.display = 'none';
+      document.getElementById('nudgeBtn').style.display = 'none';
+      document.getElementById('paddleHint').style.display = 'none';
+      PADDLE.visible = false;
+    }
+    function enterBattle() {
+      gameState = 'BATTLE';
+      document.getElementById('la').style.display = 'none';
+      document.getElementById('bh').style.display = 'none';
+      document.getElementById('st').style.display = 'none';
+      document.getElementById('battleZone').style.display = 'block';
+      document.getElementById('nudgeBtn').style.display = 'flex';
+      document.getElementById('paddleHint').style.display = 'block';
+      PADDLE.visible = true; PADDLE.x = canvas.width / 2; PADDLE.y = canvas.height - 55; PADDLE.targetX = canvas.width / 2;
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║              NUDGE                      ║
+    // ╚══════════════════════════════════════════╝
+    function applyNudge() {
+      if (nudgeCooldown > 0 || !G.running || gameState !== 'BATTLE') return;
+      nudgeCooldown = NUDGE_CD;
+      robots.forEach(r => { r.vy -= 9 + Math.random() * 4; r.vx += (Math.random() - .5) * 5; r.squishV = -.5; });
+      canvas.style.transition = 'transform .05s';
+      canvas.style.transform = 'translate(5px,-5px)';
+      setTimeout(() => { canvas.style.transform = 'translate(-5px,5px)'; }, 55);
+      setTimeout(() => { canvas.style.transform = 'translate(3px,-3px)'; }, 110);
+      setTimeout(() => { canvas.style.transform = ''; }, 165);
+      const nudgeColors = ['#ff6eb4', '#5bb8ff', '#ffd93d', '#c084fc', '#4ecdc4'];
+      for (let i = 0; i < 22; i++)spawnP(canvas.width / 2 + ((Math.random() - .5) * 220), canvas.height - 65, nudgeColors[Math.floor(Math.random() * nudgeColors.length)], 3 + Math.random() * 4);
+      SFX.levelup(); if (navigator.vibrate) navigator.vibrate([30, 20, 30]);
+      document.getElementById('nudgeBtn').classList.add('cooldown'); document.getElementById('nudgeBtn').classList.remove('ready');
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║              SPAWN                      ║
+    // ╚══════════════════════════════════════════╝
+    function spawnTarget() {
+      const cfg = CFG(), W = canvas.width, H = canvas.height;
+      if (Math.random() < cfg.bossChance) {
+        // BOSS = Donat raksasa 🍩
+        const r = 52 + Math.random() * 14;
+        targets.push({
+          x: r + Math.random() * (W - 2 * r), y: r * 1.5 + Math.random() * (H * .38),
+          vx: (Math.random() - .5) * cfg.speed * 1.4, vy: (Math.random() - .5) * cfg.speed * .7,
+          r, isBoss: true, hp: 3, maxHp: 3, alive: true,
+          pulse: Math.random() * Math.PI * 2, hitFlash: 0, ring: 0, squish: 1, squishV: 0,
+          color: '#ff9f43', glow: '#ffbd7a', pts: 800, emoji: '🍩'
+        });
+      } else {
+        const tt = TTYPES[Math.floor(Math.random() * TTYPES.length)], r = cfg.radius;
+        targets.push({
+          x: r + Math.random() * (W - 2 * r), y: r * 2 + Math.random() * (H * .45),
+          vx: (Math.random() - .5) * cfg.speed * 2, vy: (Math.random() - .5) * cfg.speed,
+          r, isBoss: false, hp: 1, maxHp: 1, alive: true,
+          pulse: Math.random() * Math.PI * 2, hitFlash: 0, ring: 0, squish: 1, squishV: 0,
+          ...tt
+        });
+      }
+    }
+    function spawnPU() {
+      const pt = PTYPES[Math.floor(Math.random() * PTYPES.length)];
+      powerups.push({ x: 60 + Math.random() * (canvas.width - 120), y: -40, vy: 1.1 + Math.random() * .7, r: 22, alive: true, pulse: 0, type: pt });
+    }
+    function spawnBallItem(x, y) { ballItems.push({ x, y, vy: .55 + Math.random() * .45, r: 17, alive: true, pulse: 0 }); }
+
+    // ╔══════════════════════════════════════════╗
+    // ║              FIRE                       ║
+    // ╚══════════════════════════════════════════╝
+    function fire() {
+      if (!G.running) return;
+      if (robots.length >= Math.min(G.maxBalls, 10)) return;
+      AC.resume(); G.shots++; SFX.shoot();
+      const px = canvas.width / 2, py = canvas.height - 110;
+      const spd = 6 + G.power / 100 * 12;
+      const angs = G.multishot ? [G.angle - 12, G.angle, G.angle + 12] : [G.angle];
+      angs.forEach(a => {
+        const { dx, dy } = getDir(a); const bx = px + dx * 52, by = py + dy * 52;
+        robots.push({ x: bx, y: by, vx: dx * spd, vy: dy * spd, r: 13, alive: true, trail: [], rotation: 0, age: 0, squish: 1, squishV: 0, bounces: 0 });
+        jellyBurst(bx, by, SK().body);
+      });
+      if (G.multishot) SFX.combo(3);
+      enterBattle();
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║            PARTICLES                    ║
+    // ╚══════════════════════════════════════════╝
+    function spawnP(x, y, color, size = 3) { particles.push({ x, y, vx: (Math.random() - .5) * 6, vy: (Math.random() - .5) * 6 - 2, r: size, color, life: 1, decay: .022 + Math.random() * .038 }); }
+    function jellyBurst(x, y, color) { for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2, s = 2 + Math.random() * 5; particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 2 + Math.random() * 4, color, life: 1, decay: .025 + Math.random() * .025 }); } }
+    function wallFX(x, y) { SFX.bounce(); const c = SK().body; for (let i = 0; i < 10; i++)particles.push({ x, y, vx: (Math.random() - .5) * 7, vy: (Math.random() - .5) * 7 - 1, r: 2 + Math.random() * 5, color: c, life: .85, decay: .055 + Math.random() * .04 }); }
+    function hitFX(x, y, color, pts) { jellyBurst(x, y, color); floats.push({ x, y, text: '+' + pts, life: 1, vy: -2, color }); }
+    function bossFX(x, y) { const cs = ['#ff9f43', '#ffd93d', '#ff6eb4', '#ff6b6b']; for (let i = 0; i < 26; i++) { const a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 6; particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 3 + Math.random() * 6, color: cs[Math.floor(Math.random() * cs.length)], life: 1, decay: .014 + Math.random() * .02 }); } }
+
+    // ╔══════════════════════════════════════════╗
+    // ║              DRAW                       ║
+    // ╚══════════════════════════════════════════╝
+    function drawBG() {
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      // Ground candy strip
+      const g = ctx.createLinearGradient(0, H * .72, 0, H);
+      g.addColorStop(0, 'rgba(255,220,240,.38)'); g.addColorStop(1, 'rgba(255,235,248,.52)');
+      ctx.fillStyle = g; ctx.fillRect(0, H * .72, W, H * .28);
+      // Ground line
+      ctx.setLineDash([8, 7]); ctx.strokeStyle = 'rgba(255,110,180,.32)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, H * .72); ctx.lineTo(W, H * .72); ctx.stroke(); ctx.setLineDash([]);
+      // Ground dots grid
+      ctx.fillStyle = 'rgba(255,110,180,.14)';
+      for (let x = 0; x < W; x += 48) { for (let y = H * .72; y < H; y += 22) { ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill(); } }
+      // BG candy floaters
+      bgCandies.forEach(c => {
+        c.y -= c.spd; c.rot += c.rs; if (c.y < -.04) c.y = 1.04;
+        ctx.save(); ctx.translate(c.x * W, c.y * H); ctx.rotate(c.rot);
+        ctx.fillStyle = c.color; ctx.beginPath(); ctx.arc(0, 0, c.sz, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      });
+      if (G.slowmo) { ctx.fillStyle = 'rgba(91,184,255,.07)'; ctx.fillRect(0, 0, W, H); }
+    }
+
+    function drawLauncher() {
+      const x = canvas.width / 2, y = canvas.height - 110;
+      const { dx, dy } = getDir(G.angle); const ba = Math.atan2(dx, -dy);
+      // Base (candy dispenser)
+      ctx.fillStyle = 'rgba(255,200,230,.5)'; ctx.strokeStyle = 'rgba(255,110,180,.4)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect(x - 40, y + 18, 80, 18, 9); ctx.fill(); ctx.stroke();
+      // Barrel
+      ctx.save(); ctx.translate(x, y); ctx.rotate(ba);
+      const brl = ctx.createLinearGradient(-8, 0, 8, 0);
+      brl.addColorStop(0, 'rgba(255,157,209,.65)'); brl.addColorStop(.5, 'rgba(255,110,180,.9)'); brl.addColorStop(1, 'rgba(255,157,209,.65)');
+      ctx.fillStyle = brl; ctx.strokeStyle = 'rgba(255,110,180,.5)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect(-8, -52, 16, 52, 4); ctx.fill(); ctx.stroke();
+      // Candy stripes on barrel
+      ctx.fillStyle = 'rgba(255,255,255,.22)';
+      for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.roundRect(-6, -50 + i * 13, 12, 7, 2); ctx.fill(); }
+      // Charge glow
+      if (G.charging) { const cp = Math.min((Date.now() - G.chargeStart) / 2000, 1); ctx.shadowColor = 'rgba(255,110,180,.9)'; ctx.shadowBlur = 17 * cp; ctx.fillStyle = `rgba(255,110,180,${cp})`; ctx.beginPath(); ctx.arc(0, -54, 7, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; }
+      ctx.restore();
+      // Pivot
+      const pg = ctx.createRadialGradient(x, y, 0, x, y, 14); pg.addColorStop(0, 'rgba(255,157,209,.95)'); pg.addColorStop(1, 'rgba(255,110,180,.6)');
+      ctx.fillStyle = pg; ctx.strokeStyle = 'rgba(255,110,180,.45)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      // Aim guide — candy dots
+      if (gameState === 'AIMING') {
+        for (let ai = 1; ai <= 9; ai++) { const at = ai / 9; ctx.globalAlpha = (.75 - at * .65) * .5; ctx.fillStyle = SK().body; ctx.beginPath(); ctx.arc(x + dx * 215 * at, y + dy * 215 * at, 3.5 - at * 2, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1;
+      }
+      if (G.multishot) { [-12, 12].forEach(off => { const { dx: ddx, dy: ddy } = getDir(G.angle + off); for (let ai = 1; ai <= 5; ai++) { const at = ai / 5; ctx.globalAlpha = (.35 - at * .25) * .45; ctx.fillStyle = SK().body; ctx.beginPath(); ctx.arc(x + ddx * 165 * at, y + ddy * 165 * at, 2, 0, Math.PI * 2); ctx.fill(); } }); ctx.globalAlpha = 1; }
+    }
+
+    // DRAW JELLY BALL
+    function drawJelly(r) {
+      const sk = SK(); const isRB = sk.id === 'rainbow'; const th = Date.now() / 1000;
+      const hue = isRB ? (th * 55) % 360 : 0;
+      const bodyC = isRB ? `hsl(${hue},82%,70%)` : sk.body;
+      const glowC = isRB ? `hsl(${(hue + 30) % 360},82%,80%)` : sk.glow;
+      const sq = r.squish || 1, sqX = 1 + (1 - sq) * .55, sqY = sq;
+      ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(r.rotation); ctx.globalAlpha = Math.min(r.age / 5, 1);
+      // Outer glow ring
+      const grd = ctx.createRadialGradient(0, 0, r.r * .25, 0, 0, r.r * 1.55);
+      grd.addColorStop(0, glowC + '50'); grd.addColorStop(1, glowC + '00');
+      ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0, 0, r.r * 1.55, 0, Math.PI * 2); ctx.fill();
+      // Body squish
+      ctx.scale(sqX, sqY);
+      const bg = ctx.createRadialGradient(-r.r * .28, -r.r * .28, 0, 0, 0, r.r);
+      bg.addColorStop(0, 'rgba(255,255,255,.8)'); bg.addColorStop(.32, bodyC + 'ee'); bg.addColorStop(1, bodyC + '99');
+      ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(0, 0, r.r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = glowC + 'bb'; ctx.lineWidth = 2; ctx.globalAlpha = .62; ctx.beginPath(); ctx.arc(0, 0, r.r, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = Math.min(r.age / 5, 1);
+      // Highlights
+      ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.beginPath(); ctx.ellipse(-r.r * .22, -r.r * .25, r.r * .26, r.r * .16, -Math.PI / 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(-r.r * .33, -r.r * .33, r.r * .07, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      // Trail
+      for (let i = 0; i < r.trail.length; i++) {
+        const a = (i / r.trail.length) * .38; const tc = isRB ? `hsl(${(th * 55 + i * 24) % 360},82%,75%)` : sk.trail;
+        ctx.globalAlpha = a; ctx.fillStyle = tc; ctx.beginPath(); ctx.arc(r.trail[i].x, r.trail[i].y, r.r * .44 * (i / r.trail.length), 0, Math.PI * 2); ctx.fill();
+      } ctx.globalAlpha = 1;
+    }
+
+    // DRAW CANDY TARGET
+    function drawTarget(t) {
+      if (!t.alive) return; t.pulse += .05;
+      t.squishV = (t.squishV || 0) + (1 - (t.squish || 1)) * .28; t.squishV *= .72; t.squish = (t.squish || 1) + (t.squishV || 0); t.squish = Math.max(.75, Math.min(1.3, t.squish));
+      ctx.save(); ctx.translate(t.x, t.y);
+
+      if (t.isBoss) {
+        // 🍩 DONAT BOSS
+        const hf = t.hp / t.maxHp; const flashC = t.hitFlash > 0;
+        // Outer glow rings
+        ctx.globalAlpha = .14 + .12 * Math.sin(t.pulse * 2); ctx.strokeStyle = flashC ? '#fff' : '#ff9f43'; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.arc(0, 0, t.r + 14 + 5 * Math.sin(t.pulse), 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, t.r + 26 + 4 * Math.sin(t.pulse + 1), 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1; ctx.scale(t.squish, 2 - t.squish);
+        // Donat body
+        ctx.shadowColor = '#ffbd7a'; ctx.shadowBlur = 20;
+        ctx.fillStyle = flashC ? 'rgba(255,255,255,.85)' : t.color + 'cc'; ctx.strokeStyle = flashC ? '#fff' : t.color; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(0, 0, t.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+        // Hole
+        ctx.fillStyle = 'rgba(255,240,250,.88)'; ctx.strokeStyle = t.color + '80'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, t.r * .38, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        // Glazing
+        ctx.fillStyle = `hsla(${20 + (1 - hf) * 60},100%,65%,.65)`;
+        for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + t.pulse * .4; ctx.beginPath(); ctx.ellipse(Math.cos(a) * t.r * .62, Math.sin(a) * t.r * .62, t.r * .18, t.r * .11, a, 0, Math.PI * 2); ctx.fill(); }
+        // Sprinkles
+        const spCols = ['#ff6eb4', '#5bb8ff', '#ffd93d', '#4ecdc4'];
+        for (let i = 0; i < 8; i++) {
+          const a = i / 8 * Math.PI * 2 + t.pulse, dist = t.r * .58;
+          ctx.save(); ctx.translate(Math.cos(a) * dist, Math.sin(a) * dist); ctx.rotate(a + Math.PI / 4);
+          ctx.fillStyle = spCols[i % 4]; ctx.beginPath(); ctx.roundRect(-4, -2, 8, 4, 2); ctx.fill(); ctx.restore();
+        }
+        // HP dots
+        for (let i = 0; i < t.maxHp; i++) { const px = (i - (t.maxHp - 1) / 2) * 18; ctx.fillStyle = i < t.hp ? t.color : 'rgba(200,150,100,.25)'; ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(px, t.r + 16, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+        ctx.fillStyle = t.color; ctx.font = 'bold 11px Nunito'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowColor = '#ffbd7a'; ctx.shadowBlur = 8; ctx.fillText('BOSS 🍩', 0, t.r + 30); ctx.shadowBlur = 0;
+        if (t.hitFlash > 0) t.hitFlash -= .08;
+
+      } else {
+        // 🍭 CANDY TARGET
+        const pr = t.r + 3 * Math.sin(t.pulse);
+        ctx.globalAlpha = .22 + .14 * Math.sin(t.pulse); ctx.strokeStyle = t.color; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, pr + 9, 0, Math.PI * 2); ctx.stroke();
+        if (t.ring > 0) { ctx.globalAlpha = t.ring * .5; ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, t.r * (1 + (1 - t.ring) * 2.5), 0, Math.PI * 2); ctx.stroke(); t.ring -= .055; }
+        ctx.globalAlpha = 1; ctx.scale(t.squish, 2 - t.squish);
+        ctx.shadowColor = t.glow; ctx.shadowBlur = 14;
+        const cg = ctx.createRadialGradient(-t.r * .2, -t.r * .2, 0, 0, 0, t.r);
+        cg.addColorStop(0, 'rgba(255,255,255,.68)'); cg.addColorStop(.3, t.color + 'ee'); cg.addColorStop(1, t.color + '88');
+        ctx.fillStyle = cg; ctx.strokeStyle = t.color; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(0, 0, t.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+        // Candy shine stripes
+        ctx.strokeStyle = 'rgba(255,255,255,.32)'; ctx.lineWidth = t.r * .38;
+        for (let ci = 0; ci < 3; ci++) { const ca = ci * Math.PI / 1.5 + t.pulse * .28; ctx.beginPath(); ctx.arc(0, 0, t.r * .52, ca, ca + .55); ctx.stroke(); }
+        // Highlight
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.ellipse(-t.r * .2, -t.r * .2, t.r * .2, t.r * .12, -Math.PI / 5, 0, Math.PI * 2); ctx.fill();
+        // Emoji
+        ctx.font = `${t.r * .85}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = .88; ctx.fillText(t.emoji, 0, 0); ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+    }
+
+    // DRAW POWERUP
+    function drawPU(p) {
+      if (!p.alive) return; p.pulse += .07; const bob = Math.sin(p.pulse) * 4;
+      ctx.save(); ctx.translate(p.x, p.y + bob);
+      ctx.globalAlpha = .24 + .18 * Math.sin(p.pulse); ctx.strokeStyle = p.type.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, p.r + 8, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.shadowColor = p.type.color; ctx.shadowBlur = 14; ctx.fillStyle = p.type.color + '28'; ctx.strokeStyle = p.type.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, p.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+      ctx.font = '17px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.type.icon, 0, 1); ctx.restore();
+    }
+
+    // DRAW BALL ITEMS (+Jelly)
+    function drawBallItems() {
+      ballItems.forEach(bi => {
+        if (!bi.alive) return; bi.pulse += .08; const bob = Math.sin(bi.pulse) * 3;
+        ctx.save(); ctx.translate(bi.x, bi.y + bob);
+        ctx.globalAlpha = .26 + .18 * Math.sin(bi.pulse); ctx.strokeStyle = '#ff6eb4'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, bi.r + 7, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1; ctx.shadowColor = '#ff6eb4'; ctx.shadowBlur = 14; ctx.fillStyle = 'rgba(255,110,180,.22)'; ctx.strokeStyle = '#ff6eb4'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, bi.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+        ctx.font = '15px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🍬', 0, 0); ctx.restore();
+      });
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║              UPDATE                     ║
+    // ╚══════════════════════════════════════════╝
+    function update(dt) {
+      if (!G.running) return;
+      const tScale = G.slowmo ? .32 : 1;
+
+      // ── JELLY BALLS ──
+      robots.forEach(r => {
+        r.age++; r.trail.push({ x: r.x, y: r.y }); if (r.trail.length > 14) r.trail.shift();
+        r.vx *= .997; r.vy += .18; r.x += r.vx; r.y += r.vy;
+        r.rotation = Math.atan2(r.vy, r.vx);
+        // Squish physics
+        r.squishV = (r.squishV || 0) + (1 - (r.squish || 1)) * .3; r.squishV *= .74; r.squish = 1 + (r.squishV || 0) * .12;
+
+        // Bounce walls
+        if (r.x - r.r < 0) { r.x = r.r; r.vx = Math.abs(r.vx) * .94; r.squishV = -.45; wallFX(r.x, r.y); }
+        if (r.x + r.r > canvas.width) { r.x = canvas.width - r.r; r.vx = -Math.abs(r.vx) * .94; r.squishV = -.45; wallFX(r.x, r.y); }
+        if (r.y - r.r < 0) { r.y = r.r; r.vy = Math.abs(r.vy) * .94; r.squishV = -.45; wallFX(r.x, r.y); }
+        if (r.y > canvas.height + 30) { r.alive = false; if (G.combo > 0) { G.combo = 0; updateHUD(); } }
+
+        // vs targets
+        targets.forEach(t => {
+          if (!t.alive || !r.alive) return;
+          const dx = r.x - t.x, dy = r.y - t.y, dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < t.r + r.r) {
+            t.hp--; t.ring = 1; t.hitFlash = 1; t.squishV = -.5;
+            // Ball reflect
+            const nl = dist || 1; const dot = r.vx * (dx / nl) + r.vy * (dy / nl);
+            r.vx -= 2 * dot * (dx / nl); r.vy -= 2 * dot * (dy / nl);
+            const ov = t.r + r.r - dist; if (ov > 0) { r.x += (dx / nl) * ov; r.y += (dy / nl) * ov; }
+            r.squishV = -.32;
+
+            if (t.isBoss) {
+              SFX.bossHit(); bossFX(t.x, t.y);
+              const hpLeft = t.hp;
+              floats.push({ x: t.x, y: t.y - t.r - 12, text: hpLeft > 0 ? `${hpLeft}❤️ Icing left!` : 'Donut Down! 🍩💥', life: 1.2, vy: -1.8, color: '#ff9f43' });
+              if (hpLeft <= 0) {
+                t.alive = false; G.bossKills++; G.combo++; if (G.combo > G.maxCombo) G.maxCombo = G.combo;
+                const pts = t.pts * (G.combo > 1 ? G.combo : 1); G.score += pts;
+                G.time = Math.min(G.time + CFG().tBonus * 3, CFG().time + 40);
+                SFX.bossDie(); hitFX(t.x, t.y, t.color, pts); flashScreen(); showCombo(G.combo, t.x, t.y, '#ff9f43');
+                updateHUD(); checkMission(); spawnPU(); if (Math.random() < .5) spawnBallItem(t.x, t.y);
+              } else { updateHUD(); }
+            } else {
+              t.alive = false; G.normalHits++; G.combo++; if (G.combo > G.maxCombo) G.maxCombo = G.combo;
+              const pts = t.pts * (G.combo > 1 ? G.combo : 1); G.score += pts;
+              G.time = Math.min(G.time + CFG().tBonus, CFG().time + 20);
+              SFX.hit(); SFX.combo(G.combo); hitFX(t.x, t.y, t.color, pts); flashScreen(); showCombo(G.combo, t.x, t.y, t.color);
+              updateHUD(); checkLevel(); checkMission(); if (Math.random() < .35) spawnBallItem(t.x, t.y);
+            }
+          }
+        });
+
+        // vs powerups
+        powerups.forEach(p => {
+          if (!p.alive || !r.alive) return;
+          const dx = r.x - p.x, dy = r.y - p.y;
+          if (Math.sqrt(dx * dx + dy * dy) < p.r + r.r) { p.alive = false; activatePU(p.type); }
+        });
+      });
+      robots = robots.filter(r => r.alive);
+      if (G.running && gameState === 'BATTLE' && robots.length === 0) enterAiming();
+
+      // ── TARGETS (tScale) ──
+      targets.forEach(t => {
+        if (!t.alive) return; t.x += t.vx * tScale; t.y += t.vy * tScale;
+        if (t.x < t.r || t.x > canvas.width - t.r) t.vx *= -1; if (t.y < t.r || t.y > canvas.height * .68) t.vy *= -1;
+      });
+      targets = targets.filter(t => t.alive);
+      // Safe transition
+      if (robots.length === 0 && targets.length === 0) {
+        if (!G._spawnTimer) { G._spawnTimer = Date.now(); floats.push({ x: canvas.width / 2, y: canvas.height * .4, text: '🍬 Round Clear! 🍬', life: 2.5, vy: -.6, color: '#ff6eb4' }); }
+        else if (Date.now() - G._spawnTimer >= 3000) { G._spawnTimer = null; const maxT = Math.min(CFG().targets + Math.floor(G.level / 2), 12); while (targets.length < maxT) spawnTarget(); }
+      } else if (targets.length > 0) { G._spawnTimer = null; }
+
+      // ── POWERUPS (tScale) ──
+      powerups.forEach(p => { p.y += p.vy * tScale; if (p.y > canvas.height + 60) p.alive = false; });
+      powerups = powerups.filter(p => p.alive);
+      if (Math.random() < .0007 && powerups.length < 2) spawnPU();
+
+      // ── BALL ITEMS ──
+      ballItems.forEach(bi => {
+        bi.y += bi.vy; if (bi.y > canvas.height + 50) bi.alive = false;
+        robots.forEach(r => {
+          if (!bi.alive || !r.alive) return;
+          const dx = r.x - bi.x, dy = r.y - bi.y;
+          if (Math.sqrt(dx * dx + dy * dy) < bi.r + r.r) {
+            bi.alive = false;
+            if (robots.length >= 10) { G.score += 5000; floats.push({ x: bi.x, y: bi.y - 20, text: 'Slots Full! +5000 🍬', life: 1.8, vy: -2, color: '#ffd93d' }); SFX.combo(5); }
+            else { G.maxBalls = Math.min(G.maxBalls + 1, 10); SFX.powerup(); floats.push({ x: bi.x, y: bi.y - 20, text: `+1 Jelly Slot! (${G.maxBalls}) 🍬`, life: 1.8, vy: -1.8, color: '#ff6eb4' }); }
+            if (navigator.vibrate) navigator.vibrate(30); updateHUD();
+          }
+        });
+      });
+      ballItems = ballItems.filter(bi => bi.alive);
+
+      // ── PARTICLES ──
+      particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .1; p.vx *= .97; p.life -= p.decay; });
+      particles = particles.filter(p => p.life > 0);
+      floats.forEach(f => { f.y += f.vy; f.life -= .022; }); floats = floats.filter(f => f.life > 0);
+
+      // ── CHARGE ──
+      if (G.charging) { const el = (Date.now() - G.chargeStart) / 2000; G.power = Math.min(el * 100, 100); document.getElementById('pv').textContent = Math.floor(G.power) + '%'; document.getElementById('pf').style.width = G.power + '%'; }
+
+      // ── PU TIMER ──
+      if (G.puTimer > 0) { G.puTimer -= dt / 1000; if (G.puTimer <= 0) { G.slowmo = false; G.multishot = false; G.activePU = null; document.getElementById('ap').style.display = 'none'; } else document.getElementById('ap').textContent = `${G.activePU} ${G.puTimer.toFixed(1)}s`; }
+
+      // ── PADDLE ──
+      if (PADDLE.visible && gameState === 'BATTLE') {
+        PADDLE.x += (PADDLE.targetX - PADDLE.x) * .2;
+        PADDLE.x = Math.max(PADDLE.w / 2, Math.min(canvas.width - PADDLE.w / 2, PADDLE.x));
+        robots.forEach(r => {
+          if (!r.alive) return;
+          const pl = PADDLE.x - PADDLE.w / 2, pr = PADDLE.x + PADDLE.w / 2, pt = PADDLE.y - PADDLE.h / 2, pb = PADDLE.y + PADDLE.h / 2;
+          if (r.x + r.r > pl && r.x - r.r < pr && r.y + r.r > pt && r.y - r.r < pb && r.vy > 0) {
+            r.vy = -Math.abs(r.vy) * .9; r.vx += PADDLE.vx * .3; r.y = pt - r.r; r.squishV = -.45;
+            SFX.bounce(); if (navigator.vibrate) navigator.vibrate(12); jellyBurst(r.x, PADDLE.y, SK().body);
+          }
+        });
+      }
+
+      // ── NUDGE COOLDOWN ──
+      if (nudgeCooldown > 0) {
+        nudgeCooldown = Math.max(0, nudgeCooldown - dt);
+        const pct = (1 - nudgeCooldown / NUDGE_CD) * 100;
+        document.getElementById('nudgeCoolFill').style.width = pct + '%';
+        if (nudgeCooldown <= 0) { document.getElementById('nudgeBtn').classList.remove('cooldown'); document.getElementById('nudgeBtn').classList.add('ready'); document.getElementById('nudgeCoolFill').style.width = '100%'; }
+      }
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║            MAIN LOOP                    ║
+    // ╚══════════════════════════════════════════╝
+    let lastT = 0;
+    function loop(ts) {
+      const dt = ts - lastT; lastT = ts;
+      drawBG();
+      // Jelly trails
+      robots.forEach(r => {
+        const sk = SK(); const isRB = sk.id === 'rainbow'; const th = Date.now() / 1000;
+        for (let i = 0; i < r.trail.length; i++) { const a = (i / r.trail.length) * .36; const tc = isRB ? `hsl(${(th * 55 + i * 24) % 360},82%,76%)` : sk.trail; ctx.globalAlpha = a; ctx.fillStyle = tc; ctx.beginPath(); ctx.arc(r.trail[i].x, r.trail[i].y, r.r * .42 * (i / r.trail.length), 0, Math.PI * 2); ctx.fill(); }
+      }); ctx.globalAlpha = 1;
+      targets.forEach(drawTarget); powerups.forEach(drawPU); drawBallItems();
+      // Particles
+      particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 6; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2); ctx.fill(); }); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+      // Floats
+      floats.forEach(f => { ctx.globalAlpha = f.life; ctx.fillStyle = f.color; ctx.font = '800 17px Nunito'; ctx.textAlign = 'center'; ctx.shadowColor = f.color; ctx.shadowBlur = 8; ctx.fillText(f.text, f.x, f.y); }); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+      // Jelly balls
+      robots.forEach(drawJelly);
+      drawLauncher();
+      // Paddle
+      if (PADDLE.visible && gameState === 'BATTLE') {
+        const pw = PADDLE.w, ph = PADDLE.h, px = PADDLE.x, py = PADDLE.y;
+        ctx.save(); ctx.shadowColor = '#ff6eb4'; ctx.shadowBlur = 16;
+        const pg = ctx.createLinearGradient(px - pw / 2, py, px + pw / 2, py);
+        pg.addColorStop(0, 'rgba(255,157,209,.68)'); pg.addColorStop(.5, 'rgba(255,110,180,.95)'); pg.addColorStop(1, 'rgba(255,157,209,.68)');
+        ctx.fillStyle = pg; ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.roundRect(px - pw / 2, py - ph / 2, pw, ph, ph / 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.beginPath(); ctx.roundRect(px - pw / 2 + 6, py - ph / 2 + 3, pw - 12, ph / 2 - 2, 4); ctx.fill();
+        ctx.shadowBlur = 0; ctx.restore();
+      }
+      update(dt); requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // ╔══════════════════════════════════════════╗
+    // ║              TIMER                      ║
+    // ╚══════════════════════════════════════════╝
+    let timerInt = null;
+    function startTimer() {
+      clearInterval(timerInt);
+      timerInt = setInterval(() => {
+        if (!G.running) return; G.time--;
+        const tv = document.getElementById('tv'); tv.textContent = G.time;
+        if (G.time <= 10) { tv.style.color = 'var(--rd)'; SFX.tick(); } else tv.style.color = 'var(--bl)';
+        if (G.time <= 0) endGame();
+      }, 1000);
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║             HELPERS                     ║
+    // ╚══════════════════════════════════════════╝
+    function flashScreen() { const f = document.getElementById('fl'); f.style.opacity = '.16'; setTimeout(() => f.style.opacity = '0', 65); }
+
+    function showCombo(n, x, y, color) {
+      if (n < 2) return;
+      const el = document.getElementById('cd');
+      const lbls = ['', '', 'Double!', 'Triple!', 'Quad!!', 'Penta!!!', 'Ultra!!!!'];
+      el.textContent = (n < lbls.length ? lbls[n] : 'GODLIKE!! 🍬') + ` ${n}x`;
+      el.style.color = color; el.style.textShadow = `0 0 22px ${color}`; el.style.opacity = '1'; el.style.fontSize = Math.min(20 + n * 4, 50) + 'px';
+      clearTimeout(el._t); el._t = setTimeout(() => el.style.opacity = '0', 1100);
+    }
+
+    function checkLevel() { if (G.normalHits >= G.level * 5) levelUp(); }
+    function levelUp() {
+      G.level++; document.getElementById('lv').textContent = G.level;
+      const b = document.getElementById('lb'); b.textContent = `🍭 Level ${G.level}!`; b.style.opacity = '1'; b.style.transition = 'none'; b.style.transform = 'translate(-50%,-50%) scale(1.1)';
+      setTimeout(() => { b.style.transition = 'all 1s'; b.style.opacity = '0'; b.style.transform = 'translate(-50%,-60%) scale(.8)'; }, 1500);
+      const cfg = CFG(); cfg.speed += .12; cfg.radius = Math.max(cfg.radius - 1.5, 14);
+      if (G.level % 10 === 0) { cfg.speed *= 1.10; cfg.bossChance = Math.min(cfg.bossChance + .05, .7); floats.push({ x: canvas.width / 2, y: canvas.height * .35, text: '⚠️ Difficulty Up!', life: 2.5, vy: -1, color: '#ff6b6b' }); }
+      SFX.levelup(); if (G.level % 3 === 0) spawnPU();
+    }
+
+    function activatePU(type) {
+      SFX.powerup();
+      const n = document.getElementById('pn'); n.textContent = type.icon + ' ' + type.label; n.style.color = type.color; n.style.borderColor = type.color; n.style.background = type.color + '1c'; n.style.opacity = '1'; n.style.transition = 'opacity .2s';
+      setTimeout(() => { n.style.transition = 'opacity 1s'; n.style.opacity = '0'; }, 1500);
+      if (type.id === 'multishot') { G.multishot = true; G.puTimer = type.dur; G.activePU = '🍭 Multi'; const e = document.getElementById('ap'); e.style.display = 'block'; e.style.background = type.color + '1e'; e.style.borderColor = type.color + '65'; e.style.color = type.color; }
+      else if (type.id === 'slowmo') { G.slowmo = true; G.puTimer = type.dur; G.activePU = '🌀 Slow'; const e = document.getElementById('ap'); e.style.display = 'block'; e.style.background = type.color + '1e'; e.style.borderColor = type.color + '65'; e.style.color = type.color; }
+      else if (type.id === 'time') { G.time = Math.min(G.time + 15, CFG().time + 40); floats.push({ x: canvas.width / 2, y: canvas.height / 2, text: '+15 Detik ⏰', life: 1.5, vy: -1.5, color: '#4ecdc4' }); }
+      else if (type.id === 'shield') { G.lives++; updateHUD(); floats.push({ x: canvas.width / 2, y: canvas.height / 2, text: '+1 Life 🛡', life: 1.5, vy: -1.5, color: '#c084fc' }); }
+    }
+
+    function updateHUD() {
+      document.getElementById('sv').textContent = G.score.toLocaleString();
+      document.getElementById('lv').textContent = G.level;
+      document.getElementById('cv2').textContent = totalCoins;
+      const ldEl = document.getElementById('ld');
+      if (G.lives > 10) { ldEl.innerHTML = `<span style="font-size:15px">🍬</span><span style="font-family:'Baloo 2',cursive;font-size:14px;color:var(--pk);margin-left:4px;font-weight:900"> x${G.lives}</span>`; }
+      else { ldEl.innerHTML = Array.from({ length: G.lives }, () => '<span style="font-size:12px">🍬</span>').join(''); }
+      const bh = document.getElementById('ballhud');
+      let bhtml = ''; for (let i = 0; i < G.maxBalls; i++) { bhtml += `<span style="font-size:13px;opacity:${i < robots.length ? 1 : .22}">🟣</span>`; }
+      bh.innerHTML = bhtml + `<span style="font-size:9px;color:var(--tx3);margin-left:3px;font-weight:700">JELLY</span>`;
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║            MISSIONS                     ║
+    // ╚══════════════════════════════════════════╝
+    function generateProceduralMission() {
+      procMissionCount++; const targetHits = G.level * 10; const reward = G.level * 20;
+      return { id: `P${procMissionCount}`, title: `Procedural Mission #${procMissionCount}`, desc: `Hit ${targetHits} candies`, target: 'normalHits_proc', goal: targetHits, reward, story: `Level ${G.level} — Candy is getting faster! Destroy ${targetHits} targets!`, complete: false, _baseHits: G.normalHits };
+    }
+    function checkMission() {
+      if (!activeMission) return;
+      if (activeMission.complete) {
+        const nxt = MISSIONS.find(m => !m.complete && m !== activeMission);
+        if (nxt) { activeMission = nxt; mProg = 0; updateMissionHUD(); setTimeout(() => showBrief(nxt), 600); }
+        else { const pm = generateProceduralMission(); activeMission = pm; mProg = 0; updateMissionHUD(); setTimeout(() => showBrief(pm), 400); }
+        return;
+      }
+      const m = activeMission; let p = 0;
+      if (m.target === 'hits') p = G.normalHits;
+      if (m.target === 'boss') p = G.bossKills;
+      if (m.target === 'score') p = G.score;
+      if (m.target === 'combo') p = G.maxCombo;
+      if (m.target === 'level') p = G.level;
+      if (m.target === 'normalHits_proc') p = G.normalHits - (m._baseHits || 0);
+      if (m.target === 'acc60') { const acc = G.shots > 0 ? (G.normalHits / G.shots) * 100 : 0; p = acc >= 60 ? G.normalHits : 0; }
+      mProg = Math.min(p, m.goal); updateMissionHUD();
+      if (mProg >= m.goal) completeMission();
+    }
+    function completeMission() {
+      activeMission.complete = true; totalCoins += activeMission.reward;
+      const idx = MISSIONS.indexOf(activeMission);
+      if (idx >= 2) SKINS[1].unlocked = true;
+      if (idx >= 4) SKINS[2].unlocked = true;
+      if (idx >= 5) SKINS[3].unlocked = true;
+      floats.push({ x: canvas.width / 2, y: canvas.height * .3, text: '✓ Mission Complete! +' + activeMission.reward + ' 🪙', life: 2.5, vy: -.8, color: '#4ecdc4' });
+      SFX.levelup(); updateHUD();
+      document.getElementById('mct').textContent = '✓ ' + activeMission.title;
+      document.getElementById('mcr').textContent = 'Reward: +' + activeMission.reward + ' Coins 🪙';
+      document.getElementById('mcc').textContent = 'Total: ' + totalCoins + ' Coins';
+      document.getElementById('mcOv').classList.remove('h');
+      setTimeout(() => {
+        document.getElementById('mcOv').classList.add('h');
+        const nxt = MISSIONS.find(m => !m.complete);
+        if (nxt) { activeMission = nxt; mProg = 0; updateMissionHUD(); setTimeout(() => showBrief(nxt), 400); }
+        else { const pm = generateProceduralMission(); activeMission = pm; mProg = 0; updateMissionHUD(); setTimeout(() => showBrief(pm), 400); }
+      }, 2800);
+    }
+    function updateMissionHUD() {
+      if (!activeMission) return;
+      const pct = Math.min(mProg / activeMission.goal * 100, 100);
+      document.getElementById('mh').innerHTML = `
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--tx3);letter-spacing:2px;margin-bottom:1px">Mission ${activeMission.id}: ${activeMission.title}</div>
+    <div style="font-size:10px;color:var(--pk);margin-bottom:3px;font-weight:700">${activeMission.desc}</div>
+    <div style="background:rgba(255,110,180,.12);border-radius:4px;height:5px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--pk),var(--pu));border-radius:4px;transition:width .3s"></div></div>
+    <div style="font-size:9px;color:var(--tx3);margin-top:2px;text-align:right;font-weight:700">${mProg}/${activeMission.goal}</div>`;
+    }
+    function hideMissionPopups() { document.getElementById('mbOv').classList.add('h'); document.getElementById('mcOv').classList.add('h'); }
+    document.getElementById('mbOv').addEventListener('pointerdown', hideMissionPopups);
+    document.getElementById('mcOv').addEventListener('pointerdown', hideMissionPopups);
+    function showBrief(m) {
+      document.getElementById('mbt').textContent = 'Mission ' + m.id + ': ' + m.title;
+      document.getElementById('mbs').textContent = m.story;
+      document.getElementById('mbr').textContent = '🎁 Reward: +' + m.reward + ' Coins';
+      const ov = document.getElementById('mbOv'); ov.classList.remove('h'); setTimeout(() => ov.classList.add('h'), 4200);
+    }
+
+    // ╔══════════════════════════════════════════╗
+    // ║               SHOP                      ║
+    // ╚══════════════════════════════════════════╝
+    function openShop() {
+      document.getElementById('shc').textContent = totalCoins;
+      document.getElementById('shg').innerHTML = SKINS.map((sk, i) => `
+    <div onclick="buySkin(${i})" style="background:${i === skinIdx ? sk.body + '22' : 'rgba(255,255,255,.55)'};border:2px solid ${i === skinIdx ? sk.body : 'rgba(255,110,180,.28)'};border-radius:16px;padding:11px;cursor:pointer;text-align:center;transition:all .2s;${!sk.unlocked ? 'opacity:.45' : ''}">
+      <div style="font-size:28px;margin-bottom:3px">${sk.icon}</div>
+      <div style="font-size:9px;font-weight:800;color:${sk.body};letter-spacing:1px">${sk.name}</div>
+      ${i === skinIdx ? '<div style="font-size:9px;color:var(--mn);margin-top:2px;font-weight:800">✓ Active</div>' : sk.unlocked ? '<div style="font-size:9px;color:var(--tx3);margin-top:2px;font-weight:700">Select</div>' : `<div style="font-size:9px;color:var(--yl);margin-top:2px;font-weight:800">🔒 ${sk.cost}</div>`}
+    </div>`).join('');
+      document.getElementById('shOv').classList.remove('h');
+    }
+    function buySkin(i) {
+      const sk = SKINS[i];
+      if (!sk.unlocked) {
+        if (totalCoins >= sk.cost) { sk.unlocked = true; totalCoins -= sk.cost; SFX.powerup(); updateHUD(); }
+        else { floats.push({ x: canvas.width / 2, y: canvas.height / 2, text: 'Not Enough Coins! 😭', life: 1.5, vy: -1, color: '#ff6b6b' }); SFX.shoot(); return; }
+      }
+      skinIdx = i; SFX.hit(); openShop();
+    }
+    function closeShop() { document.getElementById('shOv').classList.add('h'); }
+
+    // ╔══════════════════════════════════════════╗
+    // ║            GAME FLOW                    ║
+    // ╚══════════════════════════════════════════╝
+    function setDiff(d, btn) { G.diff = d; document.querySelectorAll('.d').forEach(b => b.classList.remove('a')); btn.classList.add('a'); }
+
+    function startGame() {
+      AC.resume(); const cfg = CFG();
+      G = { running: true, score: 0, lives: cfg.lives, level: 1, time: cfg.time, angle: 0, power: 50, charging: false, chargeStart: 0, shots: 0, normalHits: 0, bossHits: 0, combo: 0, maxCombo: 0, bossKills: 0, diff: G.diff, slowmo: false, multishot: false, puTimer: 0, activePU: null, maxBalls: 1, _spawnTimer: null };
+      DCFG.easy = { targets: 6, speed: .38, tBonus: 5, radius: 47, lives: 5, time: 90, bossChance: .12 };
+      DCFG.normal = { targets: 8, speed: .65, tBonus: 3, radius: 37, lives: 3, time: 60, bossChance: .20 };
+      DCFG.hard = { targets: 15, speed: 1.0, tBonus: 2, radius: 21, lives: 2, time: 45, bossChance: .28 };
+      robots = []; particles = []; floats = []; powerups = []; targets = []; ballItems = [];
+      gameState = 'AIMING'; nudgeCooldown = 0; PADDLE.visible = false; procMissionCount = 0;
+      MISSIONS.forEach(m => m.complete = false); activeMission = MISSIONS[0]; mProg = 0;
+      for (let i = 0; i < CFG().targets; i++)spawnTarget();
+      document.getElementById('ss').classList.add('h'); document.getElementById('go').classList.add('h'); document.getElementById('ap').style.display = 'none';
+      document.getElementById('tv').textContent = G.time; document.getElementById('tv').style.color = 'var(--bl)';
+      enterAiming(); syncAngle(); updateHUD(); updateMissionHUD();
+      setTimeout(() => showBrief(MISSIONS[0]), 800); startTimer();
+    }
+
+    function endGame() {
+      G.running = false;
+      clearInterval(timerInt);
+
+      const acc = G.shots > 0 ? Math.round(G.normalHits / G.shots * 100) : 0;
+      const earned = Math.floor(G.score / 10);
+      totalCoins += earned;
+
+      // ID yang pasti ada di HTML Mas Bob
+      if (document.getElementById('gosc')) document.getElementById('gosc').textContent = G.score.toLocaleString();
+      if (document.getElementById('goac')) document.getElementById('goac').textContent = acc + '%';
+      if (document.getElementById('gocn')) document.getElementById('gocn').textContent = '+' + earned + ' (total: ' + totalCoins + ')';
+
+      // SUNTIKAN JANGKUNG SULTAN BRANGAS 🚀
+      const rb = document.getElementById('redeemBtn');
+      if (rb) {
+        if (G.score >= 300) {
+          rb.style.display = 'block';
+          if (G.score >= 900) rb.innerHTML = '💎 CLAIM NFT BONUS (Tx L2)';
+          else if (G.score >= 600) rb.innerHTML = '🎫 CLAIM FREE TICKET (Tx L2)';
+          else rb.innerHTML = '🎁 CLAIM RAFFLE ENTRY (Tx L2)';
+        } else {
+          rb.style.display = 'none';
+        }
+      }
+
+      const titles = ['Game Over 😢', 'Nice! 🍬', 'Incredible! 🎉', 'Masterclass! 🏆'];
+      const subs = ['Keep practicing your accuracy!', 'Keep pushing forward!', 'You\'re amazing!', 'Flawless!'];
+      const i = acc < 30 ? 0 : acc < 60 ? 1 : acc < 85 ? 2 : 3;
+
+      if (document.getElementById('got')) document.getElementById('got').textContent = titles[i];
+      if (document.getElementById('gos')) document.getElementById('gos').textContent = subs[i];
+
+      // FORCE SHOW PANEL (LANGSUNG MUNCUL TANPA DELAY)
+      const goPanel = document.getElementById('go');
+      if (goPanel) {
+        goPanel.classList.remove('h');
+        console.log("Panel Game Over Aktif!");
+      }
+    }
+
+    function restartGame() { document.getElementById('go').classList.add('h'); document.getElementById('ss').classList.remove('h'); }
+
+    // ╔══════════════════════════════════════════╗
+    // ║             CONTROLS                    ║
+    // ╚══════════════════════════════════════════╝
+    const fbEl = document.getElementById('fb'); const asEl = document.getElementById('as');
+    function syncAngle() {
+      const lbl = G.angle === 0 ? '0°' : (G.angle < 0 ? Math.abs(G.angle) + '° ▶' : G.angle + '° ◀');
+      document.getElementById('av').textContent = lbl;
+      document.getElementById('ndl').style.transform = `translateX(-50%) rotate(${G.angle / 70 * 78}deg)`;
+      asEl.value = G.angle;
+    }
+    asEl.addEventListener('input', () => { G.angle = parseInt(asEl.value); syncAngle(); });
+    fbEl.addEventListener('pointerdown', e => { e.preventDefault(); if (!G.running) return; AC.resume(); G.charging = true; G.chargeStart = Date.now(); G.power = 20; fbEl.classList.add('ch'); });
+    function releaseFire(e) { if (e) e.preventDefault(); if (!G.charging) return; G.charging = false; fbEl.classList.remove('ch'); G.power = Math.min((Date.now() - G.chargeStart) / 2000 * 100, 100); fire(); setTimeout(() => { G.power = 50; document.getElementById('pv').textContent = '50%'; document.getElementById('pf').style.width = '50%'; }, 260); }
+    fbEl.addEventListener('pointerup', releaseFire); fbEl.addEventListener('pointercancel', releaseFire);
+    fbEl.addEventListener('pointerleave', e => { if (G.charging) releaseFire(e); });
+    document.addEventListener('keydown', e => {
+      if (!G.running) return;
+      if (e.code === 'Space' && !G.charging) { e.preventDefault(); AC.resume(); G.charging = true; G.chargeStart = Date.now(); G.power = 20; fbEl.classList.add('ch'); }
+      if (e.code === 'KeyN' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') { e.preventDefault(); applyNudge(); }
+      if (e.code === 'ArrowLeft') { G.angle = Math.max(-70, G.angle - 5); syncAngle(); }
+      if (e.code === 'ArrowRight') { G.angle = Math.min(70, G.angle + 5); syncAngle(); }
+    });
+    document.addEventListener('keyup', e => { if (e.code === 'Space') releaseFire(); });
+
+    // 🕹️ PADDLE TOUCH & MOUSE CONTROLS (ANTI-MAGNET)
+    let paddleTouchId = null;
+
+    document.addEventListener('touchstart', e => {
+      if (gameState !== 'BATTLE') return;
+
+      // JANGKUNG! Biar klik tombol Nudge gak narik Paddle ke pojok kanan
+      if (e.target.closest('#nudgeBtn')) return;
+
+      const t = e.changedTouches[0];
+      paddleTouchId = t.identifier;
+      PADDLE.targetX = t.clientX;
+      PADDLE.vx = 0;
+    }, { passive: false });
+
+    document.addEventListener('touchmove', e => {
+      if (gameState !== 'BATTLE' || paddleTouchId === null) return;
+      for (const t of e.changedTouches) {
+        if (t.identifier === paddleTouchId) {
+          PADDLE.vx = t.clientX - PADDLE.targetX;
+          PADDLE.targetX = t.clientX;
+          break;
+        }
+      }
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+      for (const t of e.changedTouches) {
+        if (t.identifier === paddleTouchId) {
+          paddleTouchId = null;
+          PADDLE.vx *= 0.65;
+          break;
+        }
+      }
+    }, { passive: true });
+
+    document.addEventListener('mousemove', e => {
+      if (gameState !== 'BATTLE') return;
+      PADDLE.vx = e.clientX - PADDLE.targetX;
+      PADDLE.targetX = e.clientX;
+    });
+
+    // Shake
+    let lastShk = 0, lastAX = null;
+    function handleMotion(e) { const acc = e.accelerationIncludingGravity; if (!acc) return; const { x } = acc; if (lastAX === null) { lastAX = x; return; } const d = Math.abs(x - lastAX); lastAX = x; const now = Date.now(); if (d > 18 && now - lastShk > 700 && G.running) { lastShk = now; G.power = 65 + Math.random() * 35; fire(); if (navigator.vibrate) navigator.vibrate(40); } }
+    if (typeof DeviceMotionEvent !== 'undefined') { if (typeof DeviceMotionEvent.requestPermission === 'function') { document.addEventListener('pointerup', () => { DeviceMotionEvent.requestPermission().then(r => { if (r === 'granted') window.addEventListener('devicemotion', handleMotion); }).catch(() => { }); }, { once: true }); } else window.addEventListener('devicemotion', handleMotion); }
+  </script>
+</body>
+
+</html>
