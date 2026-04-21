@@ -985,19 +985,24 @@
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), 8000);
 
-        const response = await fetch(`${NGROK_URL}/initia/tx/v1beta1/txs`, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            address: "init12w09z08cldmxmpkg5tqr7p9ckw4txklgpdjd9p",
-            score: G.score,
-            accuracy: Math.round((G.normalHits / (G.shots || 1)) * 100),
-            tx_bytes: "BASE64_HASIL_SIGN_SULTAN",
-            mode: "BROADCAST_MODE_SYNC"
-          }),
-          signal: controller.signal
-        });
+        // 1. Tambahin ini di atas fetch biar dia nangkep address dari portal
+const params = new URLSearchParams(window.location.search);
+const portalAddress = params.get('address') || "init12w09z08cldmxmpkg5tqr7p9ckw4txklgpdjd9p";
+
+// 2. Baru deh di bagian fetch-nya diganti jadi portalAddress
+const response = await fetch(`${NGROK_URL}/initia/tx/v1beta1/txs`, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        address: portalAddress, // SEKARANG SUDAH SINKRON JANGKUNG! ✅
+        score: G.score,
+        accuracy: Math.round((G.normalHits / (G.shots || 1)) * 100),
+        tx_bytes: "BASE64_HASIL_SIGN_SULTAN",
+        mode: "BROADCAST_MODE_SYNC"
+    }),
+    signal: controller.signal
+});
         clearTimeout(id);
         if (!response.ok) throw new Error('Backend Dimension Rejected! (404/500)');
 
