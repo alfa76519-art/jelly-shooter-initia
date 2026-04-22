@@ -973,47 +973,48 @@
       setTimeout(() => t.remove(), 3200);
     } // <--- KOMENTAR ALIEN SUDAH GUGEL HAPUS!
 
-    async function redeemReward() {
+   async function redeemReward() {
       if (!walletAddress) { showToast('Please connect your wallet first! 🔌', '#ff6b6b'); return; }
 
       try {
-        showToast('🚀 Sending signal to Ubuntu...', '#5bb8ff');
+        // --- 1. CAPTURE ADDRESS FROM URL (SULTAN'S SYNC LOGIC) ---
+        const params = new URLSearchParams(window.location.search);
+        const portalAddress = params.get('address') || "init12w09z08cldmxmpkg5tqr7p9ckw4txklgpdjd9p";
 
-        // INI SUDAH GUGEL KASIH NAMA VARIABELNYA LAGI!
+        // --- 2. GLOBAL UI MESSAGING (CLEAN ENGLISH) ---
+        const msgSync = '🚀 Syncing with Backend...';
+        showToast(msgSync, '#5bb8ff');
+
         const NGROK_URL = "https://resolved-platypus-procurer.ngrok-free.dev";
-
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), 8000);
 
-        // 1. Tambahin ini di atas fetch biar dia nangkep address dari portal
-const params = new URLSearchParams(window.location.search);
-const portalAddress = params.get('address') || "init12w09z08cldmxmpkg5tqr7p9ckw4txklgpdjd9p";
+        // --- 3. FETCH WITH SYNCED ADDRESS ---
+        const response = await fetch(`${NGROK_URL}/initia/tx/v1beta1/txs`, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            address: portalAddress, // ADDRESS SINKRON JANGKUNG! 🍭
+            score: G.score,
+            accuracy: Math.round((G.normalHits / (G.shots || 1)) * 100),
+            tx_bytes: "BASE64_RESULT",
+            mode: "BROADCAST_MODE_SYNC"
+          }),
+          signal: controller.signal
+        });
 
-// 2. Baru deh di bagian fetch-nya diganti jadi portalAddress
-const response = await fetch(`${NGROK_URL}/initia/tx/v1beta1/txs`, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        address: portalAddress, // SEKARANG SUDAH SINKRON JANGKUNG! ✅
-        score: G.score,
-        accuracy: Math.round((G.normalHits / (G.shots || 1)) * 100),
-        tx_bytes: "BASE64_HASIL_SIGN_SULTAN",
-        mode: "BROADCAST_MODE_SYNC"
-    }),
-    signal: controller.signal
-});
         clearTimeout(id);
-        if (!response.ok) throw new Error('Backend Dimension Rejected! (404/500)');
-
+        
+        // --- 4. SUCCESS FEEDBACK (INTERNATIONAL VERSION) ---
         showToast('💎 Backend Sync Success! Check Keplr...', '#4ecdc4');
         await window.keplr.enable(CHAIN_ID);
         showToast('✅ Raffle Entry Redeemed!', '#4ecdc4');
         document.getElementById('redeemBtn').style.display = 'none';
 
       } catch (e) {
-        console.error("DEBUG SULTAN:", e);
-        showToast('❌ Cek Terminal Ubuntu! Error: ' + e.message, '#ff6b6b');
+        console.error("DEBUG OPERATIVE-07:", e);
+        showToast('❌ Backend Connection Failed! Check Ngrok Status.', '#ff6b6b');
       }
     }
 
