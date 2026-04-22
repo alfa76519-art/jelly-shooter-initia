@@ -953,41 +953,43 @@
       const btn = document.getElementById('walletBtn'); 
       if (!btn) return;
       
-      const checkAddress = () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const portalAddr = urlParams.get('address');
+      const applySync = (addr) => {
+        const cantik = addr.slice(0, 6) + "..." + addr.slice(-4);
+        // 🛡️ CEK BIAR GAK UPDATE TERUS KALO UDAH BENER
+        if (btn.innerText.includes(cantik)) return true;
 
-        if (portalAddr && portalAddr.startsWith('init')) {
-          walletAddress = portalAddr;
-          localStorage.setItem('jlySesAddr', portalAddr);
-          
-          const cantik = portalAddr.slice(0, 6) + "..." + portalAddr.slice(-4);
-          btn.innerHTML = '✅ ' + cantik;
-          btn.classList.add('wcon');
-          console.log("Hantu Diusir! Address Sultan: ", cantik);
-          return true; // Berhasil!
-        }
-        return false;
+        walletAddress = addr;
+        localStorage.setItem('jlySesAddr', addr);
+        btn.innerHTML = '✅ ' + cantik;
+        btn.classList.add('wcon');
+        console.log("🚀 Sync Active: ", cantik);
+        return true;
       };
 
-      // 🎯 JANGKUNG TRICK: Cek tiap 500ms selama 3 detik pertama
-      if (!checkAddress()) {
-        let attempts = 0;
-        const interval = setInterval(() => {
-          attempts++;
-          if (checkAddress() || attempts > 6) clearInterval(interval);
-        }, 500);
+      // 🎯 1. PRIORITAS UTAMA: CEK URL PARAMS
+      const urlParams = new URLSearchParams(window.location.search);
+      const portalAddr = urlParams.get('address');
+
+      if (portalAddr && portalAddr.startsWith('init')) {
+        applySync(portalAddr);
+        return; 
       }
 
-      // Fallback kalo bener-bener gak ada URL Params
-      if (!window.location.search.includes('address') && walletAddress) {
-        btn.innerHTML = '✅ ' + shortAddr(walletAddress); 
-        btn.classList.add('wcon'); 
-      } else if (!window.location.search.includes('address')) {
+      // 🎯 2. FALLBACK KE STORAGE KALO URL KOSONG
+      if (walletAddress) { 
+        applySync(walletAddress);
+      } else { 
         btn.innerHTML = '🔌 Connect'; 
         btn.classList.remove('wcon'); 
       }
     }
+
+    // --- KONTROL PEMANGGILAN (WAJIB JEK!) ---
+    window.addEventListener('load', () => {
+        updateWalletUI();
+        // 🎯 DOUBLE CHECK SETELAH 1.5 DETIK (BIAR IFRAME SEMPET BACA URL)
+        setTimeout(updateWalletUI, 1500);
+    });
     async function connectKeplr() {
       if (walletAddress) { walletAddress = null; localStorage.removeItem('jlySesAddr'); updateWalletUI(); showToast('Wallet disconnected 👋', '#ff6b6b'); return; }
       if (!window.keplr) { showToast('Keplr not found! Opening store...', '#ff9f43'); setTimeout(() => window.open('https://chromewebstore.google.com/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap', '_blank'), 700); return; }
