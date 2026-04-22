@@ -953,24 +953,24 @@
       const btn = document.getElementById('walletBtn'); 
       if (!btn) return;
       
-      // 🎯 1. CEK DULU: ADA "TITIPAN" ADDRESS DARI PORTAL NGGAK?
-      const params = new URLSearchParams(window.location.search);
-      const portalAddress = params.get('address');
+      // 🎯 1. PRIORITAS NASA: CEK URL PARAMS DULU!
+      const urlParams = new URLSearchParams(window.location.search);
+      const portalAddr = urlParams.get('address');
 
-      if (portalAddress) {
-        // Kalo ada titipan, pake ini! Jangan pake data lama!
-        const cantik = portalAddress.slice(0, 6) + "..." + portalAddress.slice(-4);
+      if (portalAddr && portalAddr.startsWith('init')) {
+        console.log("🚀 Portal Data Detected: ", portalAddr);
+        walletAddress = portalAddr; // Paksa update variabel global
+        localStorage.setItem('jlySesAddr', portalAddr); // Simpan biar permanen
+        
+        const cantik = portalAddr.slice(0, 6) + "..." + portalAddr.slice(-4);
         btn.innerHTML = '✅ ' + cantik;
         btn.classList.add('wcon');
-        walletAddress = portalAddress; // Update variabel global jek!
-        localStorage.setItem('jlySesAddr', portalAddress); // Simpan biar gak ilang!
-        console.log("Portal Sync Success: ", cantik);
-        return;
+        return; // STOP! Jangan lanjut ke bawah kalo udah dapet data portal
       }
 
-      // 🎯 2. KALO NGGAK ADA TITIPAN, BARU PAKE DATA LOCAL/KEPLR
+      // 🎯 2. FALLBACK: KALO GAK ADA DATA PORTAL, PAKE STORAGE LAMA
       if (walletAddress) { 
-        btn.textContent = '✅ ' + shortAddr(walletAddress); 
+        btn.innerHTML = '✅ ' + shortAddr(walletAddress); 
         btn.classList.add('wcon'); 
       } else { 
         btn.innerHTML = '🔌 Connect'; 
