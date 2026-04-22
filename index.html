@@ -932,7 +932,7 @@
       <div id="rewardContainer" style="width:100%">
         <button class="bp" id="redeemBtn" onclick="redeemReward()"
           style="background:linear-gradient(135deg, #4ecdc4, #5bb8ff); display:none; width:100%; margin: 15px 0; border:none; box-shadow: 0 4px 15px rgba(78,205,196,0.3); font-weight: bold;">
-          💎 CLAIM NFT BONUS (Tx L2)
+          💎 CLAIM BONUS (Tx L2)
         </button>
       </div>
 
@@ -942,16 +942,37 @@
 
   <script>
     // ╔══════════════════════════════════════════╗
-    // ║          KEPLR WALLET                   ║
+    // ║          KEPLR WALLET & SYNC           ║
     // ╚══════════════════════════════════════════╝
     const CHAIN_ID = 'initiation-2';
     let walletAddress = localStorage.getItem('jlySesAddr') || null;
+
     function shortAddr(a) { return a ? a.slice(0, 6) + '...' + a.slice(-4) : ''; }
+
     function updateWalletUI() {
-      const btn = document.getElementById('walletBtn'); if (!btn) return;
-      if (walletAddress) { btn.textContent = '✅ ' + shortAddr(walletAddress); btn.classList.add('wcon'); }
-      else { btn.innerHTML = '🔌 Connect'; btn.classList.remove('wcon'); }
+      const btn = document.getElementById('walletBtn'); 
+      if (!btn) return;
+      
+      // 🎯 CEK URL DULU SEBELUM NIMPA TEKS!
+      const params = new URLSearchParams(window.location.search);
+      const portalAddress = params.get('address');
+
+      if (portalAddress) {
+        const cantik = portalAddress.slice(0, 6) + "..." + portalAddress.slice(-4);
+        btn.innerHTML = '✅ ' + cantik;
+        btn.classList.add('wcon');
+        return; // Kalo ada address dari portal, stop di sini!
+      }
+
+      if (walletAddress) { 
+        btn.textContent = '✅ ' + shortAddr(walletAddress); 
+        btn.classList.add('wcon'); 
+      } else { 
+        btn.innerHTML = '🔌 Connect'; 
+        btn.classList.remove('wcon'); 
+      }
     }
+
     async function connectKeplr() {
       if (walletAddress) { walletAddress = null; localStorage.removeItem('jlySesAddr'); updateWalletUI(); showToast('Wallet disconnected 👋', '#ff6b6b'); return; }
       if (!window.keplr) { showToast('Keplr not found! Opening store...', '#ff9f43'); setTimeout(() => window.open('https://chromewebstore.google.com/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap', '_blank'), 700); return; }
@@ -963,59 +984,21 @@
         if (accounts && accounts[0]) { walletAddress = accounts[0].address; localStorage.setItem('jlySesAddr', walletAddress); updateWalletUI(); showToast('✅ ' + shortAddr(walletAddress), '#4ecdc4'); }
       } catch (e) { showToast('Failed: ' + (e.message || 'User rejected'), '#ff6b6b'); }
     }
-    window.addEventListener('load', () => { if (walletAddress) updateWalletUI(); });
 
-    function showToast(msg, color = '#ff6eb4') {
+    // Panggil saat window load
+    window.addEventListener('load', updateWalletUI);
+
+    // --- FUNGSI TOAST ASLI (GLOBAL MAPPING) ---
+    function showToast(message, color = '#ff6eb4') {
       const box = document.getElementById('toastBox');
-      const t = document.createElement('div'); t.className = 'ti';
-      t.style.color = color; t.style.borderColor = color + '55'; t.textContent = msg;
-      box.appendChild(t);
-      setTimeout(() => t.remove(), 3200);
-    } // <--- KOMENTAR ALIEN SUDAH GUGEL HAPUS!
-
-   async function redeemReward() {
-      if (!walletAddress) { showToast('Please connect your wallet first! 🔌', '#ff6b6b'); return; }
-
-      try {
-        // --- 1. CAPTURE ADDRESS FROM URL (SULTAN'S SYNC LOGIC) ---
-        const params = new URLSearchParams(window.location.search);
-        const portalAddress = params.get('address') || "init12w09z08cldmxmpkg5tqr7p9ckw4txklgpdjd9p";
-
-        // --- 2. GLOBAL UI MESSAGING (CLEAN ENGLISH) ---
-        const msgSync = '🚀 Syncing with Backend...';
-        showToast(msgSync, '#5bb8ff');
-
-        const NGROK_URL = "https://resolved-platypus-procurer.ngrok-free.dev";
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), 8000);
-
-        // --- 3. FETCH WITH SYNCED ADDRESS ---
-        const response = await fetch(`${NGROK_URL}/initia/tx/v1beta1/txs`, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            address: portalAddress, // ADDRESS SINKRON JANGKUNG! 🍭
-            score: G.score,
-            accuracy: Math.round((G.normalHits / (G.shots || 1)) * 100),
-            tx_bytes: "BASE64_RESULT",
-            mode: "BROADCAST_MODE_SYNC"
-          }),
-          signal: controller.signal
-        });
-
-        clearTimeout(id);
-        
-        // --- 4. SUCCESS FEEDBACK (INTERNATIONAL VERSION) ---
-        showToast('💎 Backend Sync Success! Check Keplr...', '#4ecdc4');
-        await window.keplr.enable(CHAIN_ID);
-        showToast('✅ Raffle Entry Redeemed!', '#4ecdc4');
-        document.getElementById('redeemBtn').style.display = 'none';
-
-      } catch (e) {
-        console.error("DEBUG OPERATIVE-07:", e);
-        showToast('❌ Backend Connection Failed! Check Ngrok Status.', '#ff6b6b');
-      }
+      if (!box) return;
+      let msg = message;
+      if (message.includes('Berhasil')) msg = '💎 Backend Sync Success! Check Keplr...';
+      if (message.includes('Cek Terminal')) msg = '❌ Connection Error: Check Ngrok/Backend Status.';
+      if (message.includes('Misi')) msg = 'Mission Updated!';
+      if (message.includes('🚀 Sending')) msg = '🚀 Syncing with Backend...';
+      const t = document.createElement('div'); t.className = 'ti'; t.style.color = color; t.style.borderColor = color + '55'; t.textContent = msg;
+      box.appendChild(t); setTimeout(() => t.remove(), 3200);
     }
 
     // ╔══════════════════════════════════════════╗
