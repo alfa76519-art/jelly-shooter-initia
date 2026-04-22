@@ -953,17 +953,22 @@
       const btn = document.getElementById('walletBtn'); 
       if (!btn) return;
       
-      // 🎯 CEK URL DULU SEBELUM NIMPA TEKS!
+      // 🎯 1. CEK DULU: ADA "TITIPAN" ADDRESS DARI PORTAL NGGAK?
       const params = new URLSearchParams(window.location.search);
       const portalAddress = params.get('address');
 
       if (portalAddress) {
+        // Kalo ada titipan, pake ini! Jangan pake data lama!
         const cantik = portalAddress.slice(0, 6) + "..." + portalAddress.slice(-4);
         btn.innerHTML = '✅ ' + cantik;
         btn.classList.add('wcon');
-        return; // Kalo ada address dari portal, stop di sini!
+        walletAddress = portalAddress; // Update variabel global jek!
+        localStorage.setItem('jlySesAddr', portalAddress); // Simpan biar gak ilang!
+        console.log("Portal Sync Success: ", cantik);
+        return;
       }
 
+      // 🎯 2. KALO NGGAK ADA TITIPAN, BARU PAKE DATA LOCAL/KEPLR
       if (walletAddress) { 
         btn.textContent = '✅ ' + shortAddr(walletAddress); 
         btn.classList.add('wcon'); 
