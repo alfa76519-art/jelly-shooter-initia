@@ -958,17 +958,19 @@
       const portalAddr = urlParams.get('address');
 
       if (portalAddr && portalAddr.startsWith('init')) {
-        console.log("🚀 Portal Data Detected: ", portalAddr);
-        walletAddress = portalAddr; // Paksa update variabel global
-        localStorage.setItem('jlySesAddr', portalAddr); // Simpan biar permanen
+        console.log("🚀 Portal Data Detected & Forced: ", portalAddr);
         
-        const cantik = portalAddr.slice(0, 6) + "..." + portalAddr.slice(-4);
+        // --- INI KUNCI KEMENANGAN KITA JEK! ---
+        walletAddress = portalAddr; // Timpa variabel global
+        localStorage.setItem('jlySesAddr', portalAddr); // Paksa update storage
+        
+        const cantik = portalAddr.slice(0, 6) + "..." + portalAddress.slice(-4);
         btn.innerHTML = '✅ ' + cantik;
         btn.classList.add('wcon');
-        return; // STOP! Jangan lanjut ke bawah kalo udah dapet data portal
+        return; 
       }
 
-      // 🎯 2. FALLBACK: KALO GAK ADA DATA PORTAL, PAKE STORAGE LAMA
+      // 🎯 2. KALO GAK ADA DATA PORTAL & NGGAK ADA WALLET, RESET TOMBOL!
       if (walletAddress) { 
         btn.innerHTML = '✅ ' + shortAddr(walletAddress); 
         btn.classList.add('wcon'); 
@@ -977,7 +979,6 @@
         btn.classList.remove('wcon'); 
       }
     }
-
     async function connectKeplr() {
       if (walletAddress) { walletAddress = null; localStorage.removeItem('jlySesAddr'); updateWalletUI(); showToast('Wallet disconnected 👋', '#ff6b6b'); return; }
       if (!window.keplr) { showToast('Keplr not found! Opening store...', '#ff9f43'); setTimeout(() => window.open('https://chromewebstore.google.com/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap', '_blank'), 700); return; }
