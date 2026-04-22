@@ -953,28 +953,37 @@
       const btn = document.getElementById('walletBtn'); 
       if (!btn) return;
       
-      // 🎯 1. PRIORITAS NASA: CEK URL PARAMS DULU!
-      const urlParams = new URLSearchParams(window.location.search);
-      const portalAddr = urlParams.get('address');
+      const checkAddress = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const portalAddr = urlParams.get('address');
 
-      if (portalAddr && portalAddr.startsWith('init')) {
-        console.log("🚀 Portal Data Detected & Forced: ", portalAddr);
-        
-        // --- INI KUNCI KEMENANGAN KITA JEK! ---
-        walletAddress = portalAddr; // Timpa variabel global
-        localStorage.setItem('jlySesAddr', portalAddr); // Paksa update storage
-        
-        const cantik = portalAddr.slice(0, 6) + "..." + portalAddress.slice(-4);
-        btn.innerHTML = '✅ ' + cantik;
-        btn.classList.add('wcon');
-        return; 
+        if (portalAddr && portalAddr.startsWith('init')) {
+          walletAddress = portalAddr;
+          localStorage.setItem('jlySesAddr', portalAddr);
+          
+          const cantik = portalAddr.slice(0, 6) + "..." + portalAddr.slice(-4);
+          btn.innerHTML = '✅ ' + cantik;
+          btn.classList.add('wcon');
+          console.log("Hantu Diusir! Address Sultan: ", cantik);
+          return true; // Berhasil!
+        }
+        return false;
+      };
+
+      // 🎯 JANGKUNG TRICK: Cek tiap 500ms selama 3 detik pertama
+      if (!checkAddress()) {
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (checkAddress() || attempts > 6) clearInterval(interval);
+        }, 500);
       }
 
-      // 🎯 2. KALO GAK ADA DATA PORTAL & NGGAK ADA WALLET, RESET TOMBOL!
-      if (walletAddress) { 
+      // Fallback kalo bener-bener gak ada URL Params
+      if (!window.location.search.includes('address') && walletAddress) {
         btn.innerHTML = '✅ ' + shortAddr(walletAddress); 
         btn.classList.add('wcon'); 
-      } else { 
+      } else if (!window.location.search.includes('address')) {
         btn.innerHTML = '🔌 Connect'; 
         btn.classList.remove('wcon'); 
       }
