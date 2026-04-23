@@ -942,14 +942,14 @@
 
   <script>
     // ╔══════════════════════════════════════════╗
-    // ║          KEPLR WALLET & SYNC           ║
+    // ║          KEPLR WALLET & SYNC             ║
     // ╚══════════════════════════════════════════╝
     const CHAIN_ID = 'initiation-2';
     let walletAddress = localStorage.getItem('jlySesAddr') || null;
 
     function shortAddr(a) { return a ? a.slice(0, 6) + '...' + a.slice(-4) : ''; }
 
-   function updateWalletUI() {
+    function updateWalletUI() {
       const btn = document.getElementById('walletBtn'); 
       if (!btn) return;
       
@@ -957,12 +957,14 @@
         const params = new URLSearchParams(window.location.search);
         const urlAddr = params.get('address');
 
-        // 🎯 KALO ADA DI URL, LANGSUNG SIKAT!
+        // 🎯 JURUS NUKLIR: Kalo di URL ada address, LANGSUNG PAKSA GANTI!
         if (urlAddr && urlAddr.startsWith('init')) {
           walletAddress = urlAddr;
           localStorage.setItem('jlySesAddr', urlAddr);
           
           const cantik = urlAddr.slice(0, 6) + "..." + urlAddr.slice(-4);
+          if (btn.innerText.includes(cantik)) return true;
+
           btn.innerHTML = '✅ ' + cantik;
           btn.classList.add('wcon');
           console.log("🚀 FORCE SYNC SUCCESS: ", urlAddr);
@@ -971,24 +973,25 @@
         return false;
       };
 
-      // Jalankan sekali pas start
+      // 1. Cek pertama kali
       if (!doSync() && walletAddress) {
-        btn.innerHTML = '✅ ' + walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4);
-        btn.classList.add('wcon');
+          const cantik = walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4);
+          btn.innerHTML = '✅ ' + cantik;
+          btn.classList.add('wcon');
       }
 
-      // 🛡️ JURUS ANTI-LAG: Cek lagi tiap 1 detik sampe 5 kali
+      // 2. 🛡️ JURUS ANTI-GENTAYANGAN: Cek 5x tiap detik
       let count = 0;
-      const interval = setInterval(() => {
+      const syncInterval = setInterval(() => {
         count++;
-        if (doSync() || count > 5) clearInterval(interval);
+        if (doSync() || count > 5) clearInterval(syncInterval);
       }, 1000);
     }
 
     // --- KONTROL PEMANGGILAN (WAJIB JEK!) ---
     window.addEventListener('load', () => {
         updateWalletUI();
-        // 🎯 DOUBLE CHECK SETELAH 1.5 DETIK (BIAR IFRAME SEMPET BACA URL)
+        // 🎯 DOUBLE CHECK SETELAH 1.5 DETIK
         setTimeout(updateWalletUI, 1500);
     });
     async function connectKeplr() {
