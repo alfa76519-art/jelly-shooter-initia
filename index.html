@@ -947,52 +947,46 @@
     const CHAIN_ID = 'initiation-2';
     let walletAddress = localStorage.getItem('jlySesAddr') || null;
 
-    function shortAddr(a) { return a ? a.slice(0, 6) + '...' + a.slice(-4) : ''; }
-
     function updateWalletUI() {
       const btn = document.getElementById('walletBtn'); 
       if (!btn) return;
       
-      const doSync = () => {
-        const params = new URLSearchParams(window.location.search);
-        const urlAddr = params.get('address');
-
-        // 🎯 JURUS NUKLIR: Kalo di URL ada address, LANGSUNG PAKSA GANTI!
-        if (urlAddr && urlAddr.startsWith('init')) {
-          walletAddress = urlAddr;
-          localStorage.setItem('jlySesAddr', urlAddr);
-          
-          const cantik = urlAddr.slice(0, 6) + "..." + urlAddr.slice(-4);
-          if (btn.innerText.includes(cantik)) return true;
-
-          btn.innerHTML = '✅ ' + cantik;
-          btn.classList.add('wcon');
-          console.log("🚀 FORCE SYNC SUCCESS: ", urlAddr);
-          return true;
-        }
-        return false;
+      const forceSync = (addr) => {
+        if (!addr || !addr.startsWith('init')) return false;
+        
+        // 🎯 EKSEKUSI MATI HANTU INIT12!
+        walletAddress = addr;
+        localStorage.setItem('jlySesAddr', addr);
+        
+        const cantik = addr.slice(0, 6) + "..." + addr.slice(-4);
+        btn.innerHTML = '✅ ' + cantik;
+        btn.classList.add('wcon');
+        console.log("🚀 LISTENER SYNC SUCCESS: ", addr);
+        return true;
       };
 
-      // 1. Cek pertama kali
-      if (!doSync() && walletAddress) {
-          const cantik = walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4);
-          btn.innerHTML = '✅ ' + cantik;
-          btn.classList.add('wcon');
-      }
+      // 1. Cek Manual dari URL (Protokol Standar)
+      const params = new URLSearchParams(window.location.search);
+      forceSync(params.get('address'));
 
-      // 2. 🛡️ JURUS ANTI-GENTAYANGAN: Cek 5x tiap detik
-      let count = 0;
-      const syncInterval = setInterval(() => {
-        count++;
-        if (doSync() || count > 5) clearInterval(syncInterval);
-      }, 1000);
+      // 2. 🛡️ JURUS LISTENER (TITIPAN MAS BOB):
+      // Dengerin portal kalo dia kirim pesan "GANTI ADDRESS JEK!"
+      window.addEventListener('message', (event) => {
+        // Sultan bisa tambahin filter origin kalo mau lebih aman:
+        // if (event.origin !== "https://portal-sultan.com") return;
+        
+        if (event.data && event.data.type === 'ADDRESS_UPDATED') {
+          console.log("📡 Portal teriak: ", event.data.address);
+          forceSync(event.data.address);
+        }
+      });
     }
 
-    // --- KONTROL PEMANGGILAN (WAJIB JEK!) ---
-    window.addEventListener('load', () => {
-        updateWalletUI();
-        // 🎯 DOUBLE CHECK SETELAH 1.5 DETIK
-        setTimeout(updateWalletUI, 1500);
+    // --- KONTROL PEMANGGILAN ---
+    window.addEventListener('load', updateWalletUI);
+    // Double check buat Haswell yang suka telat mikir
+    setTimeout(updateWalletUI, 1000);
+    
     });
     async function connectKeplr() {
       if (walletAddress) { walletAddress = null; localStorage.removeItem('jlySesAddr'); updateWalletUI(); showToast('Wallet disconnected 👋', '#ff6b6b'); return; }
