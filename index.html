@@ -966,22 +966,36 @@
         return true;
       };
 
-      // 🎯 POINT PENTING: Ambil data LANGSUNG di baris atas
+     // 🎯 1. AMBIL ADDRESS DARI URL DULUAN (JANGAN PAKE OR '||' DULU)
     const params = new URLSearchParams(window.location.search);
-    let walletAddress = params.get('address') || localStorage.getItem('jlySesAddr') || null;
+    const urlAddr = params.get('address');
+    
+    // Kalo ada di URL, paksa hapus sampah lama di storage!
+    if (urlAddr && urlAddr.startsWith('init')) {
+        localStorage.setItem('jlySesAddr', urlAddr);
+    }
+
+    // Baru ambil buat variabel global
+    let walletAddress = localStorage.getItem('jlySesAddr') || null;
 
     function updateWalletUI() {
       const btn = document.getElementById('walletBtn'); 
       if (!btn) return;
       
-      // Kalo ada address, langsung sikat teksnya!
-      if (walletAddress && walletAddress.startsWith('init')) {
-        const cantik = walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4);
-        if (btn.innerText.includes(cantik)) return; // Anti-Spam Mas Bob
+      // Ambil ulang URL biar fresh
+      const freshParams = new URLSearchParams(window.location.search);
+      const forcedAddr = freshParams.get('address') || localStorage.getItem('jlySesAddr');
 
+      if (forcedAddr && forcedAddr.startsWith('init')) {
+        walletAddress = forcedAddr;
+        const cantik = forcedAddr.slice(0, 6) + "..." + forcedAddr.slice(-4);
+        
         btn.innerHTML = '✅ ' + cantik;
         btn.classList.add('wcon');
-        localStorage.setItem('jlySesAddr', walletAddress); 
+        console.log("BOOM! Hantu init12 resmi dipecat: ", forcedAddr);
+      } else { 
+        btn.innerHTML = '🔌 Connect'; 
+        btn.classList.remove('wcon'); 
       }
     }
 
