@@ -966,21 +966,22 @@
         return true;
       };
 
-      // 🎯 1. PRIORITAS UTAMA: CEK URL PARAMS
-      const urlParams = new URLSearchParams(window.location.search);
-      const portalAddr = urlParams.get('address');
+      // 🎯 POINT PENTING: Ambil data LANGSUNG di baris atas
+    const params = new URLSearchParams(window.location.search);
+    let walletAddress = params.get('address') || localStorage.getItem('jlySesAddr') || null;
 
-      if (portalAddr && portalAddr.startsWith('init')) {
-        applySync(portalAddr);
-        return; 
-      }
+    function updateWalletUI() {
+      const btn = document.getElementById('walletBtn'); 
+      if (!btn) return;
+      
+      // Kalo ada address, langsung sikat teksnya!
+      if (walletAddress && walletAddress.startsWith('init')) {
+        const cantik = walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4);
+        if (btn.innerText.includes(cantik)) return; // Anti-Spam Mas Bob
 
-      // 🎯 2. FALLBACK KE STORAGE KALO URL KOSONG
-      if (walletAddress) { 
-        applySync(walletAddress);
-      } else { 
-        btn.innerHTML = '🔌 Connect'; 
-        btn.classList.remove('wcon'); 
+        btn.innerHTML = '✅ ' + cantik;
+        btn.classList.add('wcon');
+        localStorage.setItem('jlySesAddr', walletAddress); 
       }
     }
 
