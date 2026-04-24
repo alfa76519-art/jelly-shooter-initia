@@ -1046,13 +1046,55 @@
     // ║           JELLY CANDY SKINS             ║
     // ╚══════════════════════════════════════════╝
     const SKINS = [
-      { id: 'strawberry', name: 'STRAWBERRY', icon: '🍓', cost: 0, unlocked: true, body: '#ff6eb4', glow: '#ffb3d9', trail: '#ffe0f0' },
-      { id: 'blueberry', name: 'BLUEBERRY', icon: '🫐', cost: 5000, unlocked: false, body: '#5bb8ff', glow: '#b3d9ff', trail: '#e0f2ff' },
-      { id: 'mint', name: 'MINT', icon: '🌿', cost: 15000, unlocked: false, body: '#4ecdc4', glow: '#9eeae6', trail: '#d4f5f3' },
-      { id: 'lemon', name: 'LEMON', icon: '🍋', cost: 30000, unlocked: false, body: '#ffd93d', glow: '#ffe97a', trail: '#fff5c2' },
-      { id: 'grape', name: 'GRAPE', icon: '🍇', cost: 75000, unlocked: false, body: '#c084fc', glow: '#ddb6fd', trail: '#f3e8ff' },
-      { id: 'rainbow', name: 'RAINBOW', icon: '🌈', cost: 200000, unlocked: false, body: '#ff6eb4', glow: '#ffd93d', trail: '#5bb8ff' },
-    ];
+  {
+    id: 'strawberry', name: 'STRAWBERRY', icon: '🍓', cost: 0, unlocked: true,
+    body: '#ff1a75',      // merah pink vivid — lebih pop dari #ff6eb4
+    glow: '#ff80b3',      // glow pink terang
+    trail: '#ffcce6',     // trail pink lembut
+    rim:  '#c0004d',      // bayangan bawah bola (baru)
+    sheen:'#ff99cc',      // highlight tengah (baru)
+  },
+  {
+    id: 'blueberry', name: 'BLUEBERRY', icon: '🫐', cost: 5000, unlocked: false,
+    body: '#3355ff',      // biru royal dalam
+    glow: '#7799ff',      // glow biru cerah
+    trail: '#ccd6ff',
+    rim:  '#0022bb',
+    sheen:'#88aaff',
+  },
+  {
+    id: 'mint', name: 'MINT', icon: '🌿', cost: 15000, unlocked: false,
+    body: '#00c9b0',      // tosca segar
+    glow: '#66ead8',
+    trail: '#ccf6f0',
+    rim:  '#007a6a',
+    sheen:'#80e8dc',
+  },
+  {
+    id: 'lemon', name: 'LEMON', icon: '🍋', cost: 30000, unlocked: false,
+    body: '#ffc200',      // kuning kunyit glossy
+    glow: '#ffe066',
+    trail: '#fff5cc',
+    rim:  '#b38700',
+    sheen:'#ffee99',
+  },
+  {
+    id: 'grape', name: 'GRAPE', icon: '🍇', cost: 75000, unlocked: false,
+    body: '#9b1dff',      // ungu vivid
+    glow: '#cc80ff',
+    trail: '#f0d6ff',
+    rim:  '#5c00b3',
+    sheen:'#cc99ff',
+  },
+  {
+    id: 'rainbow', name: 'RAINBOW', icon: '🌈', cost: 200000, unlocked: false,
+    body: '#ff6eb4',      // base pink (rainbow shift via hue rotate di drawJelly)
+    glow: '#ffd166',
+    trail: '#90e0ef',
+    rim:  '#c77dff',
+    sheen:'#ffffff',
+  },
+];
     let skinIdx = 0;
     function SK() { return SKINS[skinIdx]; }
 
@@ -1286,33 +1328,115 @@
 
     // DRAW JELLY BALL
     function drawJelly(r) {
-      const sk = SK(); const isRB = sk.id === 'rainbow'; const th = Date.now() / 1000;
-      const hue = isRB ? (th * 55) % 360 : 0;
-      const bodyC = isRB ? `hsl(${hue},82%,70%)` : sk.body;
-      const glowC = isRB ? `hsl(${(hue + 30) % 360},82%,80%)` : sk.glow;
-      const sq = r.squish || 1, sqX = 1 + (1 - sq) * .55, sqY = sq;
-      ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(r.rotation); ctx.globalAlpha = Math.min(r.age / 5, 1);
-      // Outer glow ring
-      const grd = ctx.createRadialGradient(0, 0, r.r * .25, 0, 0, r.r * 1.55);
-      grd.addColorStop(0, glowC + '50'); grd.addColorStop(1, glowC + '00');
-      ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0, 0, r.r * 1.55, 0, Math.PI * 2); ctx.fill();
-      // Body squish
-      ctx.scale(sqX, sqY);
-      const bg = ctx.createRadialGradient(-r.r * .28, -r.r * .28, 0, 0, 0, r.r);
-      bg.addColorStop(0, 'rgba(255,255,255,.8)'); bg.addColorStop(.32, bodyC + 'ee'); bg.addColorStop(1, bodyC + '99');
-      ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(0, 0, r.r, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = glowC + 'bb'; ctx.lineWidth = 2; ctx.globalAlpha = .62; ctx.beginPath(); ctx.arc(0, 0, r.r, 0, Math.PI * 2); ctx.stroke();
-      ctx.globalAlpha = Math.min(r.age / 5, 1);
-      // Highlights
-      ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.beginPath(); ctx.ellipse(-r.r * .22, -r.r * .25, r.r * .26, r.r * .16, -Math.PI / 6, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(-r.r * .33, -r.r * .33, r.r * .07, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-      // Trail
-      for (let i = 0; i < r.trail.length; i++) {
-        const a = (i / r.trail.length) * .38; const tc = isRB ? `hsl(${(th * 55 + i * 24) % 360},82%,75%)` : sk.trail;
-        ctx.globalAlpha = a; ctx.fillStyle = tc; ctx.beginPath(); ctx.arc(r.trail[i].x, r.trail[i].y, r.r * .44 * (i / r.trail.length), 0, Math.PI * 2); ctx.fill();
-      } ctx.globalAlpha = 1;
-    }
+  const sk = SK();
+  const isRB = sk.id === 'rainbow';
+  const th = Date.now() / 1000;
+  const hue = isRB ? (th * 60) % 360 : 0;
+
+  // Warna dinamis rainbow atau pakai skin warna
+  const bodyC  = isRB ? `hsl(${hue},95%,60%)`           : sk.body;
+  const glowC  = isRB ? `hsl(${(hue+40)%360},90%,72%)`  : sk.glow;
+  const rimC   = isRB ? `hsl(${(hue+20)%360},85%,35%)`  : (sk.rim   || sk.body);
+  const sheenC = isRB ? `rgba(255,255,255,0.82)`         : (sk.sheen || '#ffffff');
+  const trailC = isRB ? `hsl(${(hue+80)%360},80%,78%)`  : sk.trail;
+
+  const sq  = r.squish || 1;
+  const sqX = 1 + (1 - sq) * 0.55;
+  const sqY = sq;
+
+  ctx.save();
+  ctx.translate(r.x, r.y);
+  ctx.rotate(r.rotation);
+  ctx.globalAlpha = Math.min(r.age / 5, 1);
+
+  // ── 1. OUTER GLOW RING (lebih tebal & vivid) ──
+  const grd = ctx.createRadialGradient(0, 0, r.r * 0.3, 0, 0, r.r * 1.7);
+  grd.addColorStop(0,   glowC + '55');
+  grd.addColorStop(0.6, glowC + '22');
+  grd.addColorStop(1,   glowC + '00');
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.arc(0, 0, r.r * 1.7, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── 2. BODY dengan squish ──
+  ctx.scale(sqX, sqY);
+
+  // Layer 1: rim shadow (bawah bola — kasih kesan 3D)
+  const rimG = ctx.createRadialGradient(0, r.r * 0.35, r.r * 0.4, 0, 0, r.r);
+  rimG.addColorStop(0,   rimC + 'ff');
+  rimG.addColorStop(0.6, bodyC + 'ff');
+  rimG.addColorStop(1,   rimC + 'cc');
+  ctx.fillStyle = rimG;
+  ctx.beginPath();
+  ctx.arc(0, 0, r.r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Layer 2: main body gradient (atas terang, bawah gelap)
+  const bg = ctx.createRadialGradient(-r.r * 0.3, -r.r * 0.3, 0, 0, 0, r.r);
+  bg.addColorStop(0,    'rgba(255,255,255,0.55)');
+  bg.addColorStop(0.25, sheenC + 'aa');
+  bg.addColorStop(0.55, bodyC + 'ff');
+  bg.addColorStop(1,    rimC   + 'dd');
+  ctx.fillStyle = bg;
+  ctx.beginPath();
+  ctx.arc(0, 0, r.r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Layer 3: rim stroke tipis
+  ctx.strokeStyle = glowC + 'cc';
+  ctx.lineWidth   = 1.5;
+  ctx.globalAlpha = 0.7 * Math.min(r.age / 5, 1);
+  ctx.beginPath();
+  ctx.arc(0, 0, r.r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = Math.min(r.age / 5, 1);
+
+  // ── 3. GLOSSY HIGHLIGHT — besar di kiri atas ──
+  const hg = ctx.createRadialGradient(-r.r * 0.28, -r.r * 0.3, 0, -r.r * 0.1, -r.r * 0.1, r.r * 0.65);
+  hg.addColorStop(0,   'rgba(255,255,255,0.88)');
+  hg.addColorStop(0.4, 'rgba(255,255,255,0.35)');
+  hg.addColorStop(1,   'rgba(255,255,255,0)');
+  ctx.fillStyle = hg;
+  ctx.beginPath();
+  ctx.ellipse(-r.r * 0.2, -r.r * 0.22, r.r * 0.48, r.r * 0.32, -Math.PI / 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── 4. SPECULAR DOT — titik kecil super terang ──
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.beginPath();
+  ctx.arc(-r.r * 0.33, -r.r * 0.34, r.r * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── 5. BOTTOM REFLECTION — pantulan lantai glossy ──
+  const btm = ctx.createRadialGradient(0, r.r * 0.55, 0, 0, r.r * 0.55, r.r * 0.5);
+  btm.addColorStop(0,   'rgba(255,255,255,0.22)');
+  btm.addColorStop(1,   'rgba(255,255,255,0)');
+  ctx.fillStyle = btm;
+  ctx.beginPath();
+  ctx.ellipse(0, r.r * 0.55, r.r * 0.45, r.r * 0.22, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+
+  // ── 6. TRAIL (lebih vivid) ──
+  for (let i = 0; i < r.trail.length; i++) {
+    const ratio = i / r.trail.length;
+    const a  = ratio * 0.45;
+    const tc = isRB
+      ? `hsl(${(th * 60 + i * 28) % 360},85%,70%)`
+      : trailC;
+    ctx.globalAlpha = a;
+    ctx.fillStyle   = tc;
+    ctx.shadowColor = tc;
+    ctx.shadowBlur  = 4;
+    ctx.beginPath();
+    ctx.arc(r.trail[i].x, r.trail[i].y, r.r * 0.5 * ratio, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.shadowBlur  = 0;
+  ctx.globalAlpha = 1;
+}
 
     // DRAW CANDY TARGET
     function drawTarget(t) {
