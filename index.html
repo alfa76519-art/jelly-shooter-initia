@@ -987,7 +987,6 @@
     // Double check buat Haswell yang suka telat mikir
     setTimeout(updateWalletUI, 1000);
     
-    });
     async function connectKeplr() {
       if (walletAddress) { walletAddress = null; localStorage.removeItem('jlySesAddr'); updateWalletUI(); showToast('Wallet disconnected 👋', '#ff6b6b'); return; }
       if (!window.keplr) { showToast('Keplr not found! Opening store...', '#ff9f43'); setTimeout(() => window.open('https://chromewebstore.google.com/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap', '_blank'), 700); return; }
